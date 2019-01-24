@@ -33,7 +33,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: `${process.env.APP_URL}:${process.env.APP_PORT}/login/github/callback`
+      callbackURL: `${process.env.APP_URL}/login/github/callback`
     },
     function(accessToken, refreshToken, profile, cb) {
       let user;
@@ -137,4 +137,4 @@ app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
   res.render("profile", { user: req.user });
 });
 
-app.listen(process.env.APP_PORT);
+app.listen("3000", "localhost");
