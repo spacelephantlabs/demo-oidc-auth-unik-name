@@ -7,6 +7,9 @@
     "express",
     "passport"
   ],
+  "scripts": {
+    "start": "node server.js"
+  },
   "author": "Jared Hanson",
   "license": "Unlicense",
   "homepage": "https://github.com/passport/express-4.x-local-example",
@@ -26,6 +29,7 @@
     "express-session": "^1.11.3",
     "morgan": "^1.6.1",
     "passport": "^0.2.2",
+    "passport-github": "^1.1.0",
     "passport-local": "^1.0.0"
   }
 }

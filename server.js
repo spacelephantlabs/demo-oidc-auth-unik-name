@@ -1,8 +1,8 @@
-var express = require('express');
-var passport = require('passport');
-var Strategy = require('passport-local').Strategy;
-var db = require('./db');
-
+var express = require("express");
+var passport = require("passport");
+var Strategy = require("passport-local").Strategy;
+var GitHubStrategy = require("passport-github").Strategy;
+var db = require("./db");
 
 // Configure the local strategy for use by Passport.
 //
@@ -10,16 +10,47 @@ var db = require('./db');
 // (`username` and `password`) submitted by the user.  The function must verify
 // that the password is correct and then invoke `cb` with a user object, which
 // will be set at `req.user` in route handlers after authentication.
-passport.use(new Strategy(
-  function(username, password, cb) {
+passport.use(
+  new Strategy(function(username, password, cb) {
     db.users.findByUsername(username, function(err, user) {
-      if (err) { return cb(err); }
-      if (!user) { return cb(null, false); }
-      if (user.password != password) { return cb(null, false); }
+      if (err) {
+        return cb(err);
+      }
+      if (!user) {
+        return cb(null, false);
+      }
+      if (user.password != password) {
+        return cb(null, false);
+      }
       return cb(null, user);
     });
-  }));
+  })
+);
 
+// GitHub
+passport.use(
+  new GitHubStrategy(
+    {
+      clientID: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      callbackURL: `${process.env.APP_URL}:${process.env.APP_PORT}/login/github/callback`
+    },
+    function(accessToken, refreshToken, profile, cb) {
+      let user;
+      if (profile) {
+        user = {
+          id: profile.id,
+          username: profile.username,
+          displayName: profile.displayName,
+          emails: profile.emails
+        };
+      }
+      db.users.createUserIfNeeded(user, () => {
+        cb(null, user);
+      });
+    }
+  )
+);
 
 // Configure Passport authenticated session persistence.
 //
@@ -33,28 +64,33 @@ passport.serializeUser(function(user, cb) {
 });
 
 passport.deserializeUser(function(id, cb) {
-  db.users.findById(id, function (err, user) {
-    if (err) { return cb(err); }
+  db.users.findById(id, function(err, user) {
+    if (err) {
+      return cb(err);
+    }
     cb(null, user);
   });
 });
-
-
-
 
 // Create a new Express application.
 var app = express();
 
 // Configure view engine to render EJS templates.
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
+app.set("views", __dirname + "/views");
+app.set("view engine", "ejs");
 
 // Use application-level middleware for common functionality, including
 // logging, parsing, and session handling.
-app.use(require('morgan')('combined'));
-app.use(require('cookie-parser')());
-app.use(require('body-parser').urlencoded({ extended: true }));
-app.use(require('express-session')({ secret: 'keyboard cat', resave: false, saveUninitialized: false }));
+app.use(require("morgan")("combined"));
+app.use(require("cookie-parser")());
+app.use(require("body-parser").urlencoded({ extended: true }));
+app.use(
+  require("express-session")({
+    secret: "keyboard cat",
+    resave: false,
+    saveUninitialized: false
+  })
+);
 
 // Initialize Passport and restore authentication state, if any, from the
 // session.
@@ -62,32 +98,43 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Define routes.
-app.get('/',
+app.get("/", function(req, res) {
+  res.render("home", { user: req.user });
+});
+
+app.get("/login", function(req, res) {
+  res.render("login");
+});
+
+app.post(
+  "/login",
+  passport.authenticate("local", { failureRedirect: "/login" }),
   function(req, res) {
-    res.render('home', { user: req.user });
-  });
+    res.redirect("/");
+  }
+);
 
-app.get('/login',
-  function(req, res){
-    res.render('login');
-  });
-  
-app.post('/login', 
-  passport.authenticate('local', { failureRedirect: '/login' }),
+app.get("/login/github", passport.authenticate("github"));
+
+app.get(
+  "/login/github/callback",
+  passport.authenticate("github", { failureRedirect: "/login" }),
   function(req, res) {
-    res.redirect('/');
-  });
-  
-app.get('/logout',
-  function(req, res){
-    req.logout();
-    res.redirect('/');
-  });
+    // Successful authentication, redirect home.
+    res.redirect("/");
+  }
+);
 
-app.get('/profile',
-  require('connect-ensure-login').ensureLoggedIn(),
-  function(req, res){
-    res.render('profile', { user: req.user });
-  });
+app.get("/logout", function(req, res) {
+  req.logout();
+  res.redirect("/");
+});
 
-app.listen(3000);
+app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
+  req,
+  res
+) {
+  res.render("profile", { user: req.user });
+});
+
+app.listen(process.env.APP_PORT);

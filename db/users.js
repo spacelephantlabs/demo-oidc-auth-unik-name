@@ -25,3 +25,13 @@ exports.findByUsername = function(username, cb) {
     return cb(null, null);
   });
 }
+
+
+exports.createUserIfNeeded = function(user, cb) {
+  process.nextTick(function() {
+    if (user && user.id && !records[user.id-1]) {
+      records[user.id-1] = user;
+    }
+    cb(null, user);
+  });
+}
