@@ -1,10 +1,22 @@
-var express = require("express");
-var passport = require("passport");
-var Strategy = require("passport-local").Strategy;
-var GitHubStrategy = require("passport-github").Strategy;
-var db = require("./db");
+const express = require("express");
+const passport = require("passport");
+const Strategy = require("passport-local").Strategy;
+const GitHubStrategy = require("passport-github").Strategy;
+const db = require("./db");
+const assert = require('assert');
 
-var KeycloakStrategy = require("@exlinc/keycloak-passport");
+const KeycloakStrategy = require("@exlinc/keycloak-passport");
+
+
+// Assert env variables
+assert(process.env.APP_URL, 'process.env.APP_URL missing');
+assert(process.env.GITHUB_CLIENT_ID, 'process.env.GITHUB_CLIENT_ID missing');
+assert(process.env.GITHUB_CLIENT_SECRET, 'process.env.GITHUB_CLIENT_SECRET missing');
+assert(process.env.KEYCLOAK_HOST, 'process.env.KEYCLOAK_HOST missing');
+assert(process.env.KEYCLOAK_REALM, 'process.env.KEYCLOAK_REALM missing');
+assert(process.env.KEYCLOAK_CLIENT_ID, 'process.env.KEYCLOAK_CLIENT_ID missing');
+assert(process.env.KEYCLOAK_CLIENT_SECRET, 'process.env.KEYCLOAK_CLIENT_SECRET missing');
+
 
 // Configure the local strategy for use by Passport.
 //
