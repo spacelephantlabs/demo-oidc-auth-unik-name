@@ -4,6 +4,8 @@ var Strategy = require("passport-local").Strategy;
 var GitHubStrategy = require("passport-github").Strategy;
 var db = require("./db");
 
+var KeycloakStrategy = require("@exlinc/keycloak-passport");
+
 // Configure the local strategy for use by Passport.
 //
 // The local strategy require a `verify` function which receives the credentials
@@ -48,6 +50,39 @@ passport.use(
       db.users.createUserIfNeeded(user, () => {
         cb(null, user);
       });
+    }
+  )
+);
+
+// Keycloak
+passport.use(
+  "keycloak",
+  new KeycloakStrategy(
+    {
+      host: process.env.KEYCLOAK_HOST,
+      realm: process.env.KEYCLOAK_REALM,
+      clientID: process.env.KEYCLOAK_CLIENT_ID,
+      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+      callbackURL: `${process.env.APP_URL}/login/unikname/callback`,
+      authorizationURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/auth`,
+      tokenURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
+      userInfoURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/userinfo`
+    },
+    (accessToken, refreshToken, profile, done) => {
+      // This is called after a successful authentication has been completed
+      // Here's a sample of what you can then do, i.e., write the user to your DB
+      
+      if (profile) {
+        user = {
+          id: profile.keycloakId,
+          username: profile.username,
+          displayName: profile.fullName,
+          emails: [ { value: profile.email } ]
+        };
+        db.users.createUserIfNeeded(user, () => {
+          done(null, user);
+        });
+      }
     }
   )
 );
@@ -119,6 +154,17 @@ app.get("/login/github", passport.authenticate("github"));
 app.get(
   "/login/github/callback",
   passport.authenticate("github", { failureRedirect: "/login" }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect("/");
+  }
+);
+
+app.get("/login/unikname",
+  passport.authenticate("keycloak")
+);
+app.get("/login/unikname/callback",
+  passport.authenticate("keycloak"),
   function(req, res) {
     // Successful authentication, redirect home.
     res.redirect("/");
