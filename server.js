@@ -2,21 +2,33 @@ const express = require("express");
 const passport = require("passport");
 const Strategy = require("passport-local").Strategy;
 const GitHubStrategy = require("passport-github").Strategy;
+const OIDC = require('openid-client');
+
 const db = require("./db");
-const assert = require('assert');
+const assert = require("assert");
 
 const KeycloakStrategy = require("@exlinc/keycloak-passport");
 
-
 // Assert env variables
-assert(process.env.APP_URL, 'process.env.APP_URL missing');
-assert(process.env.GITHUB_CLIENT_ID, 'process.env.GITHUB_CLIENT_ID missing');
-assert(process.env.GITHUB_CLIENT_SECRET, 'process.env.GITHUB_CLIENT_SECRET missing');
-assert(process.env.KEYCLOAK_HOST, 'process.env.KEYCLOAK_HOST missing');
-assert(process.env.KEYCLOAK_REALM, 'process.env.KEYCLOAK_REALM missing');
-assert(process.env.KEYCLOAK_CLIENT_ID, 'process.env.KEYCLOAK_CLIENT_ID missing');
-assert(process.env.KEYCLOAK_CLIENT_SECRET, 'process.env.KEYCLOAK_CLIENT_SECRET missing');
+assert(process.env.APP_URL, "process.env.APP_URL missing");
+assert(process.env.GITHUB_CLIENT_ID, "process.env.GITHUB_CLIENT_ID missing");
+assert(
+  process.env.GITHUB_CLIENT_SECRET,
+  "process.env.GITHUB_CLIENT_SECRET missing"
+);
+assert(process.env.KEYCLOAK_HOST, "process.env.KEYCLOAK_HOST missing");
+assert(process.env.KEYCLOAK_REALM, "process.env.KEYCLOAK_REALM missing");
+assert(
+  process.env.KEYCLOAK_CLIENT_ID,
+  "process.env.KEYCLOAK_CLIENT_ID missing"
+);
+assert(
+  process.env.KEYCLOAK_CLIENT_SECRET,
+  "process.env.KEYCLOAK_CLIENT_SECRET missing"
+);
 
+// For self signed certificates
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 // Configure the local strategy for use by Passport.
 //
@@ -76,20 +88,25 @@ passport.use(
       clientID: process.env.KEYCLOAK_CLIENT_ID,
       clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
       callbackURL: `${process.env.APP_URL}/login/unikname/callback`,
-      authorizationURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/auth`,
-      tokenURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
-      userInfoURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/userinfo`
+      authorizationURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${
+        process.env.KEYCLOAK_REALM
+      }/protocol/openid-connect/auth`,
+      tokenURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${
+        process.env.KEYCLOAK_REALM
+      }/protocol/openid-connect/token`,
+      userInfoURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${
+        process.env.KEYCLOAK_REALM
+      }/protocol/openid-connect/userinfo`
     },
     (accessToken, refreshToken, profile, done) => {
       // This is called after a successful authentication has been completed
       // Here's a sample of what you can then do, i.e., write the user to your DB
-      
       if (profile) {
         user = {
           id: profile.keycloakId,
           username: profile.username,
           displayName: profile.fullName,
-          emails: [ { value: profile.email } ]
+          emails: [{ value: profile.email }]
         };
         db.users.createUserIfNeeded(user, () => {
           done(null, user);
@@ -98,6 +115,44 @@ passport.use(
     }
   )
 );
+
+(async function addOIDCStrategy() {
+
+  let casIssuer = await OIDC.Issuer.discover(process.env.CAS_DISCOVERY_URI); // => Promise
+
+console.log(casIssuer.issuer, casIssuer.metadata);
+
+  const client = new casIssuer.Client({
+    client_id: process.env.CAS_CLIENT_ID,
+    client_secret: process.env.CAS_CLIENT_SECRET,
+    redirect_uris: [`http://localhost:3000/login/unikname-cas/cb`],
+    response_types: ['code']
+  });
+
+  const params = {
+    scope: 'openid profile email phone displayName'
+  }
+
+  passport.use('oidc', new OIDC.Strategy({ client: client, params: params }, (tokenset, userinfo, done) => {
+    // console.log('tokenset', tokenset);
+    // console.log('access_token', tokenset.access_token);
+    // console.log('id_token', tokenset.id_token);
+    // console.log('claims', tokenset.claims);
+    console.log('userinfo', userinfo);
+    if (userinfo) {
+      user = {
+        id: userinfo.id,
+        username: userinfo.sub,
+        displayName: ''
+      };
+      db.users.createUserIfNeeded(user, () => {
+        done(null, user);
+      });
+    }
+  }));
+})();
+
+
 
 // Configure Passport authenticated session persistence.
 //
@@ -172,16 +227,24 @@ app.get(
   }
 );
 
-app.get("/login/unikname",
-  passport.authenticate("keycloak")
-);
-app.get("/login/unikname/callback",
-  passport.authenticate("keycloak"),
-  function(req, res) {
-    // Successful authentication, redirect home.
+app.get("/login/unikname", passport.authenticate("keycloak"));
+app.get("/login/unikname/callback", passport.authenticate("keycloak"), function(
+  req,
+  res
+) {
+  // Successful authentication, redirect home.
+  res.redirect("/");
+});
+
+app.get('/login/unikname-cas', passport.authenticate('oidc'));
+
+// authentication callback
+app.get('/login/unikname-cas/cb', passport.authenticate('oidc'), function(//{ successRedirect: '/', failureRedirect: '/login' }));
+  req,
+  res) {
     res.redirect("/");
-  }
-);
+  });
+
 
 app.get("/logout", function(req, res) {
   req.logout();
