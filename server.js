@@ -2,11 +2,12 @@ const express = require("express");
 const passport = require("passport");
 const Strategy = require("passport-local").Strategy;
 const GitHubStrategy = require("passport-github").Strategy;
-const OIDC = require('openid-client');
+const OIDC = require("openid-client");
 
 const db = require("./db");
 const assert = require("assert");
 
+const MongoClient = require("mongodb").MongoClient;
 const KeycloakStrategy = require("@exlinc/keycloak-passport");
 
 // Assert env variables
@@ -26,6 +27,20 @@ assert(
   process.env.KEYCLOAK_CLIENT_SECRET,
   "process.env.KEYCLOAK_CLIENT_SECRET missing"
 );
+
+assert(process.env.MONGO_URL, "process.env.MONGO_URL missing");
+assert(process.env.MONGO_DB_NAME, "process.env.MONGO_DB_NAME missing");
+
+
+let database = null;
+MongoClient.connect(`mongodb://${process.env.MONGO_URL}`, function(
+  error,
+  client
+) {
+  if (error) return funcCallback(error);
+  database = client.db(process.env.MONGO_DB_NAME);
+  console.log("Connecté à la base de données 'UnikNameUsers'");
+});
 
 // For self signed certificates
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
@@ -117,42 +132,45 @@ passport.use(
 );
 
 (async function addOIDCStrategy() {
-
   let casIssuer = await OIDC.Issuer.discover(process.env.CAS_DISCOVERY_URI); // => Promise
 
-console.log(casIssuer.issuer, casIssuer.metadata);
+  console.log(casIssuer.issuer, casIssuer.metadata);
 
   const client = new casIssuer.Client({
     client_id: process.env.CAS_CLIENT_ID,
     client_secret: process.env.CAS_CLIENT_SECRET,
     redirect_uris: [`http://localhost:3000/login/unikname-cas/cb`],
-    response_types: ['code']
+    response_types: ["code"]
   });
 
   const params = {
-    scope: 'openid profile email phone displayName'
-  }
+    scope: "openid"
+  };
 
-  passport.use('oidc', new OIDC.Strategy({ client: client, params: params }, (tokenset, userinfo, done) => {
-    // console.log('tokenset', tokenset);
-    // console.log('access_token', tokenset.access_token);
-    // console.log('id_token', tokenset.id_token);
-    // console.log('claims', tokenset.claims);
-    console.log('userinfo', userinfo);
-    if (userinfo) {
-      user = {
-        id: userinfo.id,
-        username: userinfo.sub,
-        displayName: ''
-      };
-      db.users.createUserIfNeeded(user, () => {
-        done(null, user);
-      });
-    }
-  }));
+  passport.use(
+    "oidc",
+    new OIDC.Strategy(
+      { client: client, params: params },
+      (tokenset, userinfo, done) => {
+        // console.log('tokenset', tokenset);
+        // console.log('access_token', tokenset.access_token);
+        // console.log('id_token', tokenset.id_token);
+        // console.log('claims', tokenset.claims);
+        console.log("userinfo", userinfo);
+        if (userinfo) {
+          user = {
+            id: userinfo.id,
+            username: userinfo.sub,
+            displayName: ""
+          };
+          db.users.createUserIfNeeded(user, () => {
+            done(null, user);
+          });
+        }
+      }
+    )
+  );
 })();
-
-
 
 // Configure Passport authenticated session persistence.
 //
@@ -216,6 +234,29 @@ app.post(
   }
 );
 
+app.get("/create", function(req, res) {
+  res.render("create");
+});
+
+app.post("/create", function(req, res) {
+
+  var newUser = {
+    username: req.body.username,
+    password: req.body.password,
+    phone: req.body.phone,
+    email: req.body.email,
+    first_name: req.body.firstName,
+    last_name: req.body.lastName
+  };
+
+  database.collection("users").insert(newUser, null, function(error, results) {
+    if (error) throw error;
+
+    console.log("Le document a bien été inséré");
+    res.redirect("/");
+  });
+});
+
 app.get("/login/github", passport.authenticate("github"));
 
 app.get(
@@ -236,15 +277,16 @@ app.get("/login/unikname/callback", passport.authenticate("keycloak"), function(
   res.redirect("/");
 });
 
-app.get('/login/unikname-cas', passport.authenticate('oidc'));
+app.get("/login/unikname-cas", passport.authenticate("oidc"));
 
 // authentication callback
-app.get('/login/unikname-cas/cb', passport.authenticate('oidc'), function(//{ successRedirect: '/', failureRedirect: '/login' }));
+app.get("/login/unikname-cas/cb", passport.authenticate("oidc"), function(
+  //{ successRedirect: '/', failureRedirect: '/login' }));
   req,
-  res) {
-    res.redirect("/");
-  });
-
+  res
+) {
+  res.redirect("/");
+});
 
 app.get("/logout", function(req, res) {
   req.logout();
