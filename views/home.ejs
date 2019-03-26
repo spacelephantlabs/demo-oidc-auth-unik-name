@@ -1,10 +1,28 @@
 <% if (!user) { %>
   <p>Welcome! Please</p>
+
   <div><a href="/create">CREATE CAS USER (MONGO DB)</a></div>
-		<div><a href="/login">log in</a></div>
+    <div><a href="/login">log in</a></div>
+    <hr/>
 		<div><a href="/login/github">Log In with github</a></div>
-		<div><a href="/login/unikname">Log In with Unik-Name Keycloak</a></div>
-		<div><a href="/login/unikname-cas">Log In with Unik-Name CAS</a></div>
+    <hr/>
+    <div><a href="/login/unikname">Log In with Unik-Name Keycloak</a></div>
+    <hr/>
+    <div><a href="/login/unikname-cas">Log In with Unik-Name CAS (LOGIN/MDP)</a></div>
+    <hr/>
+
+    <div><a href="/login/unikname-cas-pwdless">Log In with Unik-Name CAS (PASSWORDLESS)</a></div>
+    <div><a href="/login/unikname-cas-passphrase">Log In with Unik-Name PASSPHRASE</a></div>
+
+    <hr/>
+<h2>2FA</h2>
+		<div><a href="/login/unikname-cas-u2f">Log In with Unik-Name CAS (U2F)</a></div>
+    <div><a href="/login/unikname-cas-ga">Log In with Unik-Name CAS (Google Authenticator)</a></div>
+    <hr/>
+    <hr/>
+
+
+		<div><a href="/login/unikname-cas-delegate">Log In with Unik-Name CAS MFA Delegation</a></div>
 <% } else { %>
 	<p>Hello, <%= user.username %>. View your <a href="/profile">profile</a>.</p>
 <% } %>

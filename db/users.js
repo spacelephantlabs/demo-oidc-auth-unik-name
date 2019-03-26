@@ -1,18 +1,31 @@
-var records = [
-    { id: 1, username: 'jack', password: 'secret', displayName: 'Jack', emails: [ { value: 'jack@example.com' } ] }
-  , { id: 2, username: 'jill', password: 'birthday', displayName: 'Jill', emails: [ { value: 'jill@example.com' } ] }
-];
+var DEFAULT_RECORDS = {
+  jack: {
+    id: "jack",
+    username: "jack",
+    password: "secret",
+    displayName: "Jack",
+    emails: [{ value: "jack@example.com" }]
+  },
+  jill: {
+    id: "jill",
+    username: "jill",
+    password: "birthday",
+    displayName: "Jill",
+    emails: [{ value: "jill@example.com" }]
+  }
+};
+
+var records = DEFAULT_RECORDS;
 
 exports.findById = function(id, cb) {
   process.nextTick(function() {
-    var idx = id - 1;
-    if (records[idx]) {
-      cb(null, records[idx]);
+    if (records[id]) {
+      cb(null, records[id]);
     } else {
-      cb(new Error('User ' + id + ' does not exist'));
+      cb(new Error("User " + id + " does not exist"));
     }
   });
-}
+};
 
 exports.findByUsername = function(username, cb) {
   process.nextTick(function() {
@@ -24,14 +37,13 @@ exports.findByUsername = function(username, cb) {
     }
     return cb(null, null);
   });
-}
-
+};
 
 exports.createUserIfNeeded = function(user, cb) {
   process.nextTick(function() {
-    if (user && user.id && !records[user.id-1]) {
-      records[user.id-1] = user;
+    if (user && user.id && !records[user.id]) {
+      records[user.id] = user;
     }
     cb(null, user);
   });
-}
+};

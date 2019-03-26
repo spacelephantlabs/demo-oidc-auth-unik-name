@@ -10,6 +10,8 @@ const assert = require("assert");
 const MongoClient = require("mongodb").MongoClient;
 const KeycloakStrategy = require("@exlinc/keycloak-passport");
 
+require("custom-env").env("dev");
+
 // Assert env variables
 assert(process.env.APP_URL, "process.env.APP_URL missing");
 assert(process.env.GITHUB_CLIENT_ID, "process.env.GITHUB_CLIENT_ID missing");
@@ -30,7 +32,6 @@ assert(
 
 assert(process.env.MONGO_URL, "process.env.MONGO_URL missing");
 assert(process.env.MONGO_DB_NAME, "process.env.MONGO_DB_NAME missing");
-
 
 let database = null;
 MongoClient.connect(`mongodb://${process.env.MONGO_URL}`, function(
@@ -53,7 +54,7 @@ process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 // will be set at `req.user` in route handlers after authentication.
 passport.use(
   new Strategy(function(username, password, cb) {
-    db.users.findByUsername(username, function(err, user) {
+    db.users.findById(username, function(err, user) {
       if (err) {
         return cb(err);
       }
@@ -132,14 +133,16 @@ passport.use(
 );
 
 (async function addOIDCStrategy() {
-  let casIssuer = await OIDC.Issuer.discover(process.env.CAS_DISCOVERY_URI); // => Promise
+  let casIssuer = await OIDC.Issuer.discover(
+    process.env.CAS_SIMPLE_DISCOVERY_URI
+  ); // => Promise
 
-  console.log(casIssuer.issuer, casIssuer.metadata);
+  //console.log(casIssuer.issuer, casIssuer.metadata);
 
   const client = new casIssuer.Client({
-    client_id: process.env.CAS_CLIENT_ID,
-    client_secret: process.env.CAS_CLIENT_SECRET,
-    redirect_uris: [`http://localhost:3000/login/unikname-cas/cb`],
+    client_id: process.env.CAS_SIMPLE_CLIENT_ID,
+    client_secret: process.env.CAS_SIMPLE_CLIENT_SECRET,
+    redirect_uris: [`${process.env.APP_URL}/login/unikname-cas/cb`],
     response_types: ["code"]
   });
 
@@ -172,6 +175,189 @@ passport.use(
   );
 })();
 
+(async function addOIDCDelegatedStrategy() {
+  let casIssuer = await OIDC.Issuer.discover(
+    process.env.CAS_DELEGATE_DISCOVERY_URI
+  ); // => Promise
+
+  //console.log(casIssuer.issuer, casIssuer.metadata);
+
+  const client = new casIssuer.Client({
+    client_id: process.env.CAS_DELEGATE_CLIENT_ID,
+    client_secret: process.env.CAS_DELEGATE_CLIENT_SECRET,
+    redirect_uris: [`${process.env.APP_URL}/login/unikname-cas-delegate/cb`],
+    response_types: ["code"]
+  });
+
+  const params = {
+    scope: "openid"
+  };
+
+  passport.use(
+    "oidc-delegate",
+    new OIDC.Strategy(
+      { client: client, params: params },
+      (tokenset, userinfo, done) => {
+        console.log("userinfo", userinfo);
+        if (userinfo) {
+          user = {
+            id: userinfo.id,
+            username: userinfo.sub,
+            displayName: ""
+          };
+          db.users.createUserIfNeeded(user, () => {
+            done(null, user);
+          });
+        }
+      }
+    )
+  );
+})();
+
+(async function addOIDC_U2FStrategy() {
+  let casIssuer = await OIDC.Issuer.discover(process.env.CAS_U2F_DISCOVERY_URI); // => Promise
+
+  const client = new casIssuer.Client({
+    client_id: process.env.CAS_U2F_CLIENT_ID,
+    client_secret: process.env.CAS_U2F_CLIENT_SECRET,
+    redirect_uris: [`${process.env.APP_URL}/login/unikname-cas-u2f/cb`],
+    response_types: ["code"]
+  });
+
+  const params = {
+    scope: "openid"
+  };
+
+  passport.use(
+    "oidc-u2f",
+    new OIDC.Strategy(
+      { client: client, params: params },
+      (tokenset, userinfo, done) => {
+        console.log("userinfo", userinfo);
+        if (userinfo) {
+          user = {
+            id: userinfo.id,
+            username: userinfo.sub,
+            displayName: ""
+          };
+          db.users.createUserIfNeeded(user, () => {
+            done(null, user);
+          });
+        }
+      }
+    )
+  );
+})();
+
+(async function addOIDC_PWDLESSStrategy() {
+  let casIssuer = await OIDC.Issuer.discover(
+    process.env.CAS_PWDLESS_DISCOVERY_URI
+  ); // => Promise
+
+  const client = new casIssuer.Client({
+    client_id: process.env.CAS_PWDLESS_CLIENT_ID,
+    client_secret: process.env.CAS_PWDLESS_CLIENT_SECRET,
+    redirect_uris: [`${process.env.APP_URL}/login/unikname-cas-pwdless/cb`],
+    response_types: ["code"]
+  });
+
+  const params = {
+    scope: "openid"
+  };
+
+  passport.use(
+    "oidc-pwdless",
+    new OIDC.Strategy(
+      { client: client, params: params },
+      (tokenset, userinfo, done) => {
+        console.log("userinfo", userinfo);
+        if (userinfo) {
+          user = {
+            id: userinfo.id,
+            username: userinfo.sub,
+            displayName: ""
+          };
+          db.users.createUserIfNeeded(user, () => {
+            done(null, user);
+          });
+        }
+      }
+    )
+  );
+})();
+
+(async function addOIDC_GAStrategy() {
+  let casIssuer = await OIDC.Issuer.discover(process.env.CAS_GA_DISCOVERY_URI); // => Promise
+
+  const client = new casIssuer.Client({
+    client_id: process.env.CAS_GA_CLIENT_ID,
+    client_secret: process.env.CAS_GA_CLIENT_SECRET,
+    redirect_uris: [`${process.env.APP_URL}/login/unikname-cas-ga/cb`],
+    response_types: ["code"]
+  });
+
+  const params = {
+    scope: "openid"
+  };
+
+  passport.use(
+    "oidc-ga",
+    new OIDC.Strategy(
+      { client: client, params: params },
+      (tokenset, userinfo, done) => {
+        console.log("userinfo", userinfo);
+        if (userinfo) {
+          user = {
+            id: userinfo.id,
+            username: userinfo.sub,
+            displayName: ""
+          };
+          db.users.createUserIfNeeded(user, () => {
+            done(null, user);
+          });
+        }
+      }
+    )
+  );
+})();
+
+(async function addOIDC_PassphraseStrategy() {
+  let casIssuer = await OIDC.Issuer.discover(
+    process.env.CAS_PASSPHRASE_DISCOVERY_URI
+  ); // => Promise
+
+  const client = new casIssuer.Client({
+    client_id: process.env.CAS_PASSPHRASE_CLIENT_ID,
+    client_secret: process.env.CAS_PASSPHRASE_CLIENT_SECRET,
+    redirect_uris: [`${process.env.APP_URL}/login/unikname-cas-passphrase/cb`],
+    response_types: ["code"]
+  });
+
+  const params = {
+    scope: "email"
+  };
+
+  passport.use(
+    "oidc-passphrase",
+    new OIDC.Strategy(
+      { client: client, params: params },
+      (tokenset, userinfo, done) => {
+        console.log("userinfo", userinfo);
+        if (userinfo) {
+          user = {
+            id: userinfo.id,
+            username: userinfo.sub,
+            displayName: ""
+          };
+          db.users.createUserIfNeeded(user, () => {
+            done(null, user);
+          });
+        }
+      }
+    )
+  );
+})();
+
 // Configure Passport authenticated session persistence.
 //
 // In order to restore authentication state across HTTP requests, Passport needs
@@ -188,6 +374,7 @@ passport.deserializeUser(function(id, cb) {
     if (err) {
       return cb(err);
     }
+    console.log("USER FROM DB !!!!!!!!!!!!!!", user);
     cb(null, user);
   });
 });
@@ -211,6 +398,15 @@ app.use(
     saveUninitialized: false
   })
 );
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 
 // Initialize Passport and restore authentication state, if any, from the
 // session.
@@ -239,7 +435,6 @@ app.get("/create", function(req, res) {
 });
 
 app.post("/create", function(req, res) {
-
   var newUser = {
     username: req.body.username,
     password: req.body.password,
@@ -288,6 +483,80 @@ app.get("/login/unikname-cas/cb", passport.authenticate("oidc"), function(
   res.redirect("/");
 });
 
+app.get("/login/unikname-cas-delegate", passport.authenticate("oidc-delegate"));
+
+// authentication callback
+app.get(
+  "/login/unikname-cas-delegate/cb",
+  passport.authenticate("oidc-delegate"),
+  function(
+    //{ successRedirect: '/', failureRedirect: '/login' }));
+    req,
+    res
+  ) {
+    res.redirect("/");
+  }
+);
+
+app.get("/login/unikname-cas-u2f", passport.authenticate("oidc-u2f"));
+
+// authentication callback
+app.get(
+  "/login/unikname-cas-u2f/cb",
+  passport.authenticate("oidc-u2f"),
+  function(
+    //{ successRedirect: '/', failureRedirect: '/login' }));
+    req,
+    res
+  ) {
+    res.redirect("/");
+  }
+);
+
+app.get("/login/unikname-cas-pwdless", passport.authenticate("oidc-pwdless"));
+
+// authentication callback
+app.get(
+  "/login/unikname-cas-pwdless/cb",
+  passport.authenticate("oidc-pwdless"),
+  function(
+    //{ successRedirect: '/', failureRedirect: '/login' }));
+    req,
+    res
+  ) {
+    res.redirect("/");
+  }
+);
+
+app.get("/login/unikname-cas-ga", passport.authenticate("oidc-ga"));
+
+// authentication callback
+app.get("/login/unikname-cas-ga/cb", passport.authenticate("oidc-ga"), function(
+  //{ successRedirect: '/', failureRedirect: '/login' }));
+  req,
+  res
+) {
+  res.redirect("/");
+});
+
+app.get(
+  "/login/unikname-cas-passphrase",
+  passport.authenticate("oidc-passphrase")
+);
+
+// authentication callback
+app.get(
+  "/login/unikname-cas-passphrase/cb",
+  passport.authenticate("oidc-passphrase"),
+  function(
+    //{ successRedirect: '/', failureRedirect: '/login' }));
+    req,
+    res
+  ) {
+    res.redirect("/");
+  }
+);
+
 app.get("/logout", function(req, res) {
   req.logout();
   res.redirect("/");
@@ -300,4 +569,4 @@ app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
   res.render("profile", { user: req.user });
 });
 
-app.listen("3000", "localhost");
+app.listen("3003", "localhost");
