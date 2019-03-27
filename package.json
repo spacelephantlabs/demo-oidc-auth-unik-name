@@ -1,24 +1,20 @@
 {
-  "name": "express-4.x-local-example",
+  "name": "demo-oidc-auth-unik-name",
   "version": "0.0.0",
-  "description": "Express 4.x app using Passport for authentication with username and password.",
+  "description": "Demo app showing social authentication with Unik-Name solution https://unik-name.com",
   "keywords": [
-    "example",
-    "express",
-    "passport"
+    "oidc",
+    "unik-name"
   ],
   "scripts": {
     "start": "node server.js"
   },
-  "author": "Jared Hanson",
-  "license": "Unlicense",
-  "homepage": "https://github.com/passport/express-4.x-local-example",
+  "author": "Space Elephant",
+  "license": "MIT",
+  "homepage": "https://github.com/spacelephantlabs/demo-oidc-auth-unik-name",
   "repository": {
     "type": "git",
-    "url": "git://github.com/passport/express-4.x-local-example.git"
-  },
-  "bugs": {
-    "url": "https://github.com/passport/express-4.x-local-example/issues"
+    "url": "git://github.com/spacelephantlabs/demo-oidc-auth-unik-name.git"
   },
   "dependencies": {
     "@exlinc/keycloak-passport": "^1.0.2",
@@ -29,7 +25,6 @@
     "ejs": "^2.3.3",
     "express": "^4.13.3",
     "express-session": "^1.11.3",
-    "mongodb": "^3.1.13",
     "morgan": "^1.6.1",
     "openid-client": "^2.4.5",
     "passport": "^0.2.2",
