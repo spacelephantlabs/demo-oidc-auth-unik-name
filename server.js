@@ -8,7 +8,8 @@ const GitHubStrategy = require("passport-github").Strategy;
 const OIDC = require("openid-client");
 const KeycloakStrategy = require("@exlinc/keycloak-passport");
 
-require("custom-env").env("dev");
+require("custom-env").env(true);
+
 console.log("Configuration mode:", process.env.APP_ENV);
 
 // Assert env variables
@@ -103,7 +104,7 @@ app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
 });
 
 let interface = process.env.SERVER_LISTEN_INTERFACE;
-let port = process.env.SERVER_LISTEN_PORT;
+let port = process.env.PORT ? process.env.PORT : 3003;
 
 app.listen(port, interface);
 console.log("Server started on", `http://${interface}:${port}`);
@@ -582,6 +583,7 @@ if (isAuthModeEnabled("CAS_GA")) {
 // ##     ##  ##  ##     ## ##          ##        #########       ##       ## ##        ##     ## ##   ##   #########       ## ##
 // ##     ##  ##  ##     ## ##    ##    ##        ##     ## ##    ## ##    ## ##        ##     ## ##    ##  ##     ## ##    ## ##
 //  #######  #### ########   ######     ##        ##     ##  ######   ######  ##        ##     ## ##     ## ##     ##  ######  ########
+
 if (isAuthModeEnabled("CAS_PASSPHRASE")) {
   (async function addOIDC_PassphraseStrategy() {
     let casIssuer = await OIDC.Issuer.discover(
