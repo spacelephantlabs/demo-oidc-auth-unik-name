@@ -1,28 +1,43 @@
 <% if (!user) { %>
-  <p>Welcome! Please</p>
+<p>Welcome! Please</p>
 
-  <div><a href="/create">CREATE CAS USER (MONGO DB)</a></div>
-    <div><a href="/login">log in</a></div>
-    <hr/>
-		<div><a href="/login/github">Log In with github</a></div>
-    <hr/>
-    <div><a href="/login/unikname">Log In with Unik-Name Keycloak</a></div>
-    <hr/>
-    <div><a href="/login/unikname-cas">Log In with Unik-Name CAS (LOGIN/MDP)</a></div>
-    <hr/>
-
-    <div><a href="/login/unikname-cas-pwdless">Log In with Unik-Name CAS (PASSWORDLESS)</a></div>
-    <div><a href="/login/unikname-cas-passphrase">Log In with Unik-Name PASSPHRASE</a></div>
-
-    <hr/>
+<h2>1FA</h2>
+<% if (process.env.LOCAL_PWD_ENABLED === "true") { %>
+<p><a href="/login">log in with local password</a></p>
+<% } %> <% if (process.env.GITHUB_ENABLED === "true") { %>
+<p><a href="/login/github">Log In with github</a></p>
+<% } %> <% if (process.env.KEYCLOAK_ENABLED === "true") { %>
+<p><a href="/login/unikname">Log In with Unik-Name Keycloak</a></p>
+<% } %> <% if (process.env.CAS_SIMPLE_ENABLED === "true") { %>
+<p>
+  <a href="/login/unikname-cas">Log In with Unik-Name CAS (LOGIN/MDP)</a>
+</p>
+<% } %> <% if (process.env.CAS_PWDLESS_ENABLED === "true") { %>
+<p>
+  <a href="/login/unikname-cas-pwdless"
+    >Log In with Unik-Name CAS (PASSWORDLESS)</a
+  >
+</p>
+<% } %> <% if (process.env.CAS_PASSPHRASE_ENABLED === "true") { %>
+<p>
+  <a href="/login/unikname-cas-passphrase">Log In with Unik-Name PASSPHRASE</a>
+</p>
+<% } %>
 <h2>2FA</h2>
-		<div><a href="/login/unikname-cas-u2f">Log In with Unik-Name CAS (U2F)</a></div>
-    <div><a href="/login/unikname-cas-ga">Log In with Unik-Name CAS (Google Authenticator)</a></div>
-    <hr/>
-    <hr/>
-
-
-		<div><a href="/login/unikname-cas-delegate">Log In with Unik-Name CAS MFA Delegation</a></div>
-<% } else { %>
-	<p>Hello, <%= user.username %>. View your <a href="/profile">profile</a>.</p>
+<% if (process.env.CAS_U2F_ENABLED === "true") { %>
+<p><a href="/login/unikname-cas-u2f">Log In with Unik-Name CAS (U2F)</a></p>
+<% } %> <% if (process.env.CAS_GA_ENABLED === "true") { %>
+<p>
+  <a href="/login/unikname-cas-ga"
+    >Log In with Unik-Name CAS (Google Authenticator)</a
+  >
+</p>
+<% } %> <% if (process.env.CAS_DELEGATE_ENABLED === "true") { %>
+<p>
+  <a href="/login/unikname-cas-delegate"
+    >Log In with Unik-Name CAS MFA Delegation</a
+  >
+</p>
+<% } %> <% } else { %>
+<p>Hello, <%= user.username %>. View your <a href="/profile">profile</a>.</p>
 <% } %>
