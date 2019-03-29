@@ -69,6 +69,12 @@ app.use(function(req, res, next) {
   next();
 });
 
+if (process.env.APP_ENFORCE_TLS) {
+  console.log("Enforce TLS, all HTTP requests will be redirected to HTTPS");
+  const enforce = require("express-sslify");
+  app.use(enforce.HTTPS({ trustProtoHeader: true }));
+}
+
 // Initialize Passport and restore authentication state, if any, from the
 // session.
 app.use(passport.initialize());

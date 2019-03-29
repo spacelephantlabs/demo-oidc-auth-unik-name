@@ -25,6 +25,7 @@
     "ejs": "^2.3.3",
     "express": "^4.13.3",
     "express-session": "^1.11.3",
+    "express-sslify": "^1.2.0",
     "morgan": "^1.6.1",
     "openid-client": "^2.4.5",
     "passport": "^0.2.2",
