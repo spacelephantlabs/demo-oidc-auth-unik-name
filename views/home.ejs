@@ -1,43 +1,92 @@
-<% if (!user) { %>
-<p>Welcome! Please</p>
+<link href="/css/style.css" rel="stylesheet" type="text/css" />
+<link
+  href="https://fonts.googleapis.com/css?family=Montserrat:400,700"
+  rel="stylesheet"
+/>
 
-<h2>1FA</h2>
-<% if (process.env.LOCAL_PWD_ENABLED === "true") { %>
-<p><a href="/login">log in with local password</a></p>
-<% } %> <% if (process.env.GITHUB_ENABLED === "true") { %>
-<p><a href="/login/github">Log In with github</a></p>
-<% } %> <% if (process.env.KEYCLOAK_ENABLED === "true") { %>
-<p><a href="/login/unikname">Log In with Unik-Name Keycloak</a></p>
-<% } %> <% if (process.env.CAS_SIMPLE_ENABLED === "true") { %>
-<p>
-  <a href="/login/unikname-cas">Log In with Unik-Name CAS (LOGIN/MDP)</a>
-</p>
-<% } %> <% if (process.env.CAS_PWDLESS_ENABLED === "true") { %>
-<p>
-  <a href="/login/unikname-cas-pwdless"
-    >Log In with Unik-Name CAS (PASSWORDLESS)</a
-  >
-</p>
-<% } %> <% if (process.env.CAS_PASSPHRASE_ENABLED === "true") { %>
-<p>
-  <a href="/login/unikname-cas-passphrase">Log In with Unik-Name PASSPHRASE</a>
-</p>
-<% } %>
-<h2>2FA</h2>
-<% if (process.env.CAS_U2F_ENABLED === "true") { %>
-<p><a href="/login/unikname-cas-u2f">Log In with Unik-Name CAS (U2F)</a></p>
-<% } %> <% if (process.env.CAS_GA_ENABLED === "true") { %>
-<p>
-  <a href="/login/unikname-cas-ga"
-    >Log In with Unik-Name CAS (Google Authenticator)</a
-  >
-</p>
-<% } %> <% if (process.env.CAS_DELEGATE_ENABLED === "true") { %>
-<p>
-  <a href="/login/unikname-cas-delegate"
-    >Log In with Unik-Name CAS MFA Delegation</a
-  >
-</p>
-<% } %> <% } else { %>
-<p>Hello, <%= user.username %>. View your <a href="/profile">profile</a>.</p>
-<% } %>
+<div class="container">
+  <nav class="menu">
+    <div>
+      <h1>My sample application</h1>
+    </div>
+    <ul>
+      <li><a href="#">Home</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Contact</a></li>
+      <% if (user) { %>
+      <li><a href="/profile">👨 My Profile</a></li>
+      <% } %>
+    </ul>
+  </nav>
+  <div class="main-container">
+    <% if (!user) { %>
+    <h2>Login</h2>
+    <div class="login content">
+      <div>
+        <p>Welcome! Please login with:</p>
+      </div>
+      <% if (process.env.LOCAL_PWD_ENABLED === "true" ||
+      process.env.GITHUB_ENABLED === "true" || process.env.KEYCLOAK_ENABLED ===
+      "true" || process.env.CAS_SIMPLE_ENABLED === "true" ||
+      process.env.CAS_PWDLESS_ENABLED === "true" ||
+      process.env.CAS_PASSPHRASE_ENABLED === "true") { %>
+      <h3>1FA</h3>
+      <% } %> <% if (process.env.LOCAL_PWD_ENABLED === "true") { %>
+      <div class="login-link">
+        <a href="/login">local password</a>
+      </div>
+      <% } %> <% if (process.env.GITHUB_ENABLED === "true") { %>
+      <div class="login-link">
+        <a href="/login/github">github</a>
+      </div>
+      <% } %> <% if (process.env.KEYCLOAK_ENABLED === "true") { %>
+      <div class="login-link">
+        <a href="/login/unikname">Unik-Name Keycloak</a>
+      </div>
+      <% } %> <% if (process.env.CAS_SIMPLE_ENABLED === "true") { %>
+      <div class="login-link">
+        <a href="/login/unikname-cas">Unik-Name CAS (LOGIN/MDP)</a>
+      </div>
+      <% } %> <% if (process.env.CAS_PWDLESS_ENABLED === "true") { %>
+      <div class="login-link">
+        <a href="/login/unikname-cas-pwdless">Unik-Name CAS (PASSWORDLESS)</a>
+      </div>
+      <% } %> <% if (process.env.CAS_PASSPHRASE_ENABLED === "true") { %>
+      <div class="login-link">
+        <a href="/login/unikname-cas-passphrase">Unik-Name PASSPHRASE</a>
+      </div>
+      <% } %> <% if (process.env.CAS_U2F_ENABLED === "true" ||
+      process.env.CAS_GA_ENABLED === "true" || process.env.CAS_DELEGATE_ENABLED
+      === "true") { %>
+      <h3>2FA</h3>
+      <% } %> <% if (process.env.CAS_U2F_ENABLED === "true") { %>
+      <div class="login-link">
+        <a href="/login/unikname-cas-u2f">Unik-Name CAS (U2F)</a>
+      </div>
+      <% } %> <% if (process.env.CAS_GA_ENABLED === "true") { %>
+      <div class="login-link">
+        <a href="/login/unikname-cas-ga"
+          >Unik-Name CAS (Google Authenticator)</a
+        >
+      </div>
+      <% } %> <% if (process.env.CAS_DELEGATE_ENABLED === "true") { %>
+      <div class="login-link">
+        <a href="/login/unikname-cas-delegate">Unik-Name CAS MFA Delegation</a>
+      </div>
+    </div>
+    <% } %> <% } else { %>
+    <h2>
+      Login success
+    </h2>
+    <div class="logged content">
+      <p>Hello, <span class="username"><%= user.username %></span></p>
+      <a class="profile-link" href="/profile"> View your profile</a>
+      <% } %>
+    </div>
+  </div>
+  <footer>
+    <a class="se-link" href="https://www.spacelephant.org" target="_blank"
+      >spacelephant.org</a
+    >
+  </footer>
+</div>

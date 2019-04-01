@@ -1,8 +1,42 @@
-<p>
-  ID: <%= user.id %><br />
-  Username: <%= user.username %><br />
-  Name: <%= user.displayName %><br />
-  <% if (user.emails) { %> Email: <%= user.emails[0].value %><br />
-  <% } %>
-</p>
-<a href="/logout">Log out</a>
+<link href="/css/style.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet">
+
+<div class="container">
+  <nav class="menu">
+    <div>
+      <h1>My sample application</h1>
+    </div>
+    <ul>
+      <li><a href="#">Home</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Contact</a></li>
+      <% if (user) { %>
+      <li><a href="/logout">Logout</a></li>
+      <% } %>
+    </ul>
+  </nav>
+  <div class="main-container">
+    <h2>User informations</h2>
+    <div class="informations content">
+      <ul>
+        <li>
+          <label>ID</label>: <span class="value"></span><%= user.id %></span>
+        </li>
+        <li>
+            <label>Username</label>: <span class="value"></span><%= user.username %></span>
+        </li>
+        <li>
+            <label>Name</label>: <span class="value"></span><%= user.displayName %></span></li>
+        <% if (user.emails) { %>
+        <li><label>Email</label>: <span class="value"><%= user.emails[0].value %></span></li>
+        <% } %>
+      </ul>
+      <a href="/logout">Log out</a>
+    </div>
+  </div>
+  <footer>
+    <a class="se-link" href="https://www.spacelephant.org" target="_blank"
+      >spacelephant.org</a
+    >
+  </footer>
+</div>
