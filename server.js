@@ -1,3 +1,4 @@
+//ASCII arts from http://patorjk.com/software/taag/#p=display&f=Banner3
 const express = require("express");
 const passport = require("passport");
 const db = require("./db");
@@ -26,12 +27,12 @@ process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 // typical implementation of this is as simple as supplying the user ID when
 // serializing, and querying the user record by ID from the database when
 // deserializing.
-passport.serializeUser(function(user, cb) {
+passport.serializeUser(function (user, cb) {
   cb(null, user.id);
 });
 
-passport.deserializeUser(function(id, cb) {
-  db.users.findById(id, function(err, user) {
+passport.deserializeUser(function (id, cb) {
+  db.users.findById(id, function (err, user) {
     if (err) {
       return cb(err);
     }
@@ -61,7 +62,7 @@ app.use(
   })
 );
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
@@ -82,28 +83,28 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Define routes.
-app.get("/", function(req, res) {
+app.get("/", function (req, res) {
   res.render("home", { user: req.user });
 });
 
-app.get("/login", function(req, res) {
+app.get("/login", function (req, res) {
   res.render("login");
 });
 
 app.post(
   "/login",
   passport.authenticate("local", { failureRedirect: "/login" }),
-  function(req, res) {
+  function (req, res) {
     res.redirect("/");
   }
 );
 
-app.get("/logout", function(req, res) {
+app.get("/logout", function (req, res) {
   req.logout();
   res.redirect("/");
 });
 
-app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
+app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function (
   req,
   res
 ) {
@@ -112,9 +113,6 @@ app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
 
 let interface = process.env.SERVER_LISTEN_INTERFACE;
 let port = process.env.PORT ? process.env.PORT : 3003;
-
-app.listen(port, interface);
-console.log("Server started on", `http://${interface}:${port}`);
 
 function isAuthModeEnabled(authMode) {
   let enabled = process.env[authMode + "_ENABLED"] === "true";
@@ -138,8 +136,8 @@ if (isAuthModeEnabled("LOCAL_PWD")) {
   // that the password is correct and then invoke `cb` with a user object, which
   // will be set at `req.user` in route handlers after authentication.
   passport.use(
-    new Strategy(function(username, password, cb) {
-      db.users.findById(username, function(err, user) {
+    new Strategy(function (username, password, cb) {
+      db.users.findById(username, function (err, user) {
         if (err) {
           return cb(err);
         }
@@ -171,7 +169,7 @@ if (isAuthModeEnabled("GITHUB")) {
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
         callbackURL: `${process.env.APP_URL}/login/github/callback`
       },
-      function(accessToken, refreshToken, profile, cb) {
+      function (accessToken, refreshToken, profile, cb) {
         let user;
         if (profile) {
           user = {
@@ -193,7 +191,7 @@ if (isAuthModeEnabled("GITHUB")) {
   app.get(
     "/login/github/callback",
     passport.authenticate("github", { failureRedirect: "/login" }),
-    function(req, res) {
+    function (req, res) {
       // Successful authentication, redirect home.
       res.redirect("/");
     }
@@ -230,13 +228,13 @@ if (isAuthModeEnabled("KEYCLOAK")) {
         callbackURL: `${process.env.APP_URL}/login/unikname/callback`,
         authorizationURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${
           process.env.KEYCLOAK_REALM
-        }/protocol/openid-connect/auth`,
+          }/protocol/openid-connect/auth`,
         tokenURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${
           process.env.KEYCLOAK_REALM
-        }/protocol/openid-connect/token`,
+          }/protocol/openid-connect/token`,
         userInfoURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${
           process.env.KEYCLOAK_REALM
-        }/protocol/openid-connect/userinfo`
+          }/protocol/openid-connect/userinfo`
       },
       (accessToken, refreshToken, profile, done) => {
         // This is called after a successful authentication has been completed
@@ -260,7 +258,7 @@ if (isAuthModeEnabled("KEYCLOAK")) {
   app.get(
     "/login/unikname/callback",
     passport.authenticate("keycloak"),
-    function(req, res) {
+    function (req, res) {
       // Successful authentication, redirect home.
       res.redirect("/");
     }
@@ -321,7 +319,7 @@ if (isAuthModeEnabled("CAS_SIMPLE")) {
   app.get("/login/unikname-cas", passport.authenticate("oidc"));
 
   // authentication callback
-  app.get("/login/unikname-cas/cb", passport.authenticate("oidc"), function(
+  app.get("/login/unikname-cas/cb", passport.authenticate("oidc"), function (
     //{ successRedirect: '/', failureRedirect: '/login' }));
     req,
     res
@@ -387,7 +385,7 @@ if (isAuthModeEnabled("CAS_DELEGATED")) {
   app.get(
     "/login/unikname-cas-delegate/cb",
     passport.authenticate("oidc-delegate"),
-    function(
+    function (
       //{ successRedirect: '/', failureRedirect: '/login' }));
       req,
       res
@@ -449,7 +447,7 @@ if (isAuthModeEnabled("CAS_U2F")) {
   app.get(
     "/login/unikname-cas-u2f/cb",
     passport.authenticate("oidc-u2f"),
-    function(
+    function (
       //{ successRedirect: '/', failureRedirect: '/login' }));
       req,
       res
@@ -511,7 +509,7 @@ if (isAuthModeEnabled("CAS_PWDLESS")) {
   app.get(
     "/login/unikname-cas-pwdless/cb",
     passport.authenticate("oidc-pwdless"),
-    function(
+    function (
       //{ successRedirect: '/', failureRedirect: '/login' }));
       req,
       res
@@ -573,7 +571,7 @@ if (isAuthModeEnabled("CAS_GA")) {
   app.get(
     "/login/unikname-cas-ga/cb",
     passport.authenticate("oidc-ga"),
-    function(
+    function (
       //{ successRedirect: '/', failureRedirect: '/login' }));
       req,
       res
@@ -640,7 +638,7 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
   app.get(
     "/login/unikname-cas-passphrase/cb",
     passport.authenticate("oidc-passphrase"),
-    function(
+    function (
       //{ successRedirect: '/', failureRedirect: '/login' }));
       req,
       res
@@ -649,3 +647,15 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
     }
   );
 }
+
+// ######  ######## ########  ##     ## ######## ########  
+// ##    ## ##       ##     ## ##     ## ##       ##     ## 
+// ##       ##       ##     ## ##     ## ##       ##     ## 
+//  ######  ######   ########  ##     ## ######   ########  
+//       ## ##       ##   ##    ##   ##  ##       ##   ##   
+// ##    ## ##       ##    ##    ## ##   ##       ##    ##  
+//  ######  ######## ##     ##    ###    ######## ##     ## 
+
+app.listen(port, interface);
+console.log("Server started on", `http://${interface}:${port}`);
+
