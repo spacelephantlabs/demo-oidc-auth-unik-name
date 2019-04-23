@@ -20,6 +20,13 @@ console.log("Public URL of the service", process.env.APP_URL);
 // For self signed certificates
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
+// Configure OIDC client
+OIDC.Issuer.defaultHttpOptions = { timeout: 5000, retries: 1 };
+console.log(
+  "OIDC client HTTP configuration %O",
+  OIDC.Issuer.defaultHttpOptions
+);
+
 // Configure Passport authenticated session persistence.
 //
 // In order to restore authentication state across HTTP requests, Passport needs
@@ -591,11 +598,17 @@ if (isAuthModeEnabled("CAS_GA")) {
 
 if (isAuthModeEnabled("CAS_PASSPHRASE")) {
   (async function addOIDC_PassphraseStrategy() {
-    let casIssuer = await OIDC.Issuer.discover(
+    let unAuthIssuer = await OIDC.Issuer.discover(
       process.env.CAS_PASSPHRASE_DISCOVERY_URI
     ); // => Promise
 
-    const client = new casIssuer.Client({
+    console.log(
+      "Discovered Unik-Name Auth\n Issuer: %s\n Metadata:\n%O",
+      unAuthIssuer.issuer,
+      unAuthIssuer.metadata
+    );
+
+    const client = new unAuthIssuer.Client({
       client_id: process.env.CAS_PASSPHRASE_CLIENT_ID,
       client_secret: process.env.CAS_PASSPHRASE_CLIENT_SECRET,
       redirect_uris: [
