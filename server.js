@@ -618,7 +618,7 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
     });
 
     const params = {
-      scope: "email"
+      scope: "openid email"
     };
 
     passport.use(
