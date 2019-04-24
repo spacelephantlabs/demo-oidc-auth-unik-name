@@ -629,7 +629,7 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
           console.log("userinfo", userinfo);
           if (userinfo) {
             user = {
-              id: userinfo.id,
+              id: userinfo.sub,
               username: userinfo.sub,
               displayName: ""
             };
