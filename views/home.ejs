@@ -29,7 +29,7 @@
       process.env.GITHUB_ENABLED === "true" || process.env.KEYCLOAK_ENABLED ===
       "true" || process.env.CAS_SIMPLE_ENABLED === "true" ||
       process.env.CAS_PWDLESS_ENABLED === "true" ||
-      process.env.CAS_PASSPHRASE_ENABLED === "true") { %>
+      process.env.CAS_PASSPHRASE_LOCAL_ENABLED === "true") { %>
       <h3>1FA</h3>
       <% } %> <% if (process.env.LOCAL_PWD_ENABLED === "true") { %>
       <div class="login-link">
@@ -51,9 +51,13 @@
       <div class="login-link">
         <a href="/login/unikname-cas-pwdless">Unik-Name CAS (PASSWORDLESS)</a>
       </div>
-      <% } %> <% if (process.env.CAS_PASSPHRASE_ENABLED === "true") { %>
+      <% } %> <% if (process.env.CAS_PASSPHRASE_LOCAL_ENABLED === "true") { %>
       <div class="login-link">
-        <a href="/login/unikname-cas-passphrase">Unik-Name PASSPHRASE</a>
+        <a href="/login/unikname-cas-passphrase-local">Unik-Name PASSPHRASE</a>
+      </div>
+      <% } %> <% if (process.env.CAS_PASSPHRASE_REMOTE_ENABLED === "true") { %>
+      <div class="login-link">
+        <a href="/login/unikname-cas-passphrase-remote">Unik-Name remote passphrase</a>
       </div>
       <% } %> <% if (process.env.CAS_U2F_ENABLED === "true" ||
       process.env.CAS_GA_ENABLED === "true" || process.env.CAS_DELEGATE_ENABLED

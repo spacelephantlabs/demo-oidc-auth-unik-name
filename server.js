@@ -596,10 +596,10 @@ if (isAuthModeEnabled("CAS_GA")) {
 // ##     ##  ##  ##     ## ##    ##    ##        ##     ## ##    ## ##    ## ##        ##     ## ##    ##  ##     ## ##    ## ##
 //  #######  #### ########   ######     ##        ##     ##  ######   ######  ##        ##     ## ##     ## ##     ##  ######  ########
 
-if (isAuthModeEnabled("CAS_PASSPHRASE")) {
+if (isAuthModeEnabled("CAS_PASSPHRASE_LOCAL")) {
   (async function addOIDC_PassphraseStrategy() {
     let unAuthIssuer = await OIDC.Issuer.discover(
-      process.env.CAS_PASSPHRASE_DISCOVERY_URI
+      process.env.CAS_PASSPHRASE_LOCAL_DISCOVERY_URI
     ); // => Promise
 
     console.log(
@@ -609,10 +609,10 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
     );
 
     const client = new unAuthIssuer.Client({
-      client_id: process.env.CAS_PASSPHRASE_CLIENT_ID,
-      client_secret: process.env.CAS_PASSPHRASE_CLIENT_SECRET,
+      client_id: process.env.CAS_PASSPHRASE_LOCAL_CLIENT_ID,
+      client_secret: process.env.CAS_PASSPHRASE_LOCAL_CLIENT_SECRET,
       redirect_uris: [
-        `${process.env.APP_URL}/login/unikname-cas-passphrase/cb`
+        `${process.env.APP_URL}/login/unikname-cas-passphrase-local/cb`
       ],
       response_types: ["code"]
     });
@@ -643,13 +643,13 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
   })();
 
   app.get(
-    "/login/unikname-cas-passphrase",
+    "/login/unikname-cas-passphrase-local",
     passport.authenticate("oidc-passphrase")
   );
 
   // authentication callback
   app.get(
-    "/login/unikname-cas-passphrase/cb",
+    "/login/unikname-cas-passphrase-local/cb",
     passport.authenticate("oidc-passphrase"),
     function(
       //{ successRedirect: '/', failureRedirect: '/login' }));
@@ -661,13 +661,87 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
   );
 }
 
-// ######  ######## ########  ##     ## ######## ########
-// ##    ## ##       ##     ## ##     ## ##       ##     ##
-// ##       ##       ##     ## ##     ## ##       ##     ##
-//  ######  ######   ########  ##     ## ######   ########
-//       ## ##       ##   ##    ##   ##  ##       ##   ##
-// ##    ## ##       ##    ##    ## ##   ##       ##    ##
-//  ######  ######## ##     ##    ###    ######## ##     ##
+//  #######  #### ########   ######     ########  ######## ##     ##  #######  ######## ########    ##      ##    ###    ##       ##       ######## ######## 
+// ##     ##  ##  ##     ## ##    ##    ##     ## ##       ###   ### ##     ##    ##    ##          ##  ##  ##   ## ##   ##       ##       ##          ##    
+// ##     ##  ##  ##     ## ##          ##     ## ##       #### #### ##     ##    ##    ##          ##  ##  ##  ##   ##  ##       ##       ##          ##    
+// ##     ##  ##  ##     ## ##          ########  ######   ## ### ## ##     ##    ##    ######      ##  ##  ## ##     ## ##       ##       ######      ##    
+// ##     ##  ##  ##     ## ##          ##   ##   ##       ##     ## ##     ##    ##    ##          ##  ##  ## ######### ##       ##       ##          ##    
+// ##     ##  ##  ##     ## ##    ##    ##    ##  ##       ##     ## ##     ##    ##    ##          ##  ##  ## ##     ## ##       ##       ##          ##    
+//  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##    
+
+if (isAuthModeEnabled("CAS_PASSPHRASE_REMOTE")) {
+  (async function addOIDC_RemoteWalletStrategy() {
+
+    let unAuthIssuer = await OIDC.Issuer.discover(
+      process.env.CAS_PASSPHRASE_REMOTE_DISCOVERY_URI
+    ); // => Promise
+
+    console.log(
+      "Discovered Unik-Name Auth\n Issuer: %s\n Metadata:\n%O",
+      unAuthIssuer.issuer,
+      unAuthIssuer.metadata
+    );
+
+    const client = new unAuthIssuer.Client({
+      client_id: process.env.CAS_PASSPHRASE_REMOTE_CLIENT_ID,
+      client_secret: process.env.CAS_PASSPHRASE_REMOTE_CLIENT_SECRET,
+      redirect_uris: [
+        `${process.env.APP_URL}/login/unikname-cas-passphrase-remote/cb`
+      ],
+      response_types: ["code"]
+    });
+
+    const params = {
+      scope: "email"
+    };
+
+    passport.use(
+      "oidc-remote-wallet",
+      new OIDC.Strategy(
+        { client: client, params: params },
+        (tokenset, userinfo, done) => {
+          console.log("userinfo", userinfo);
+          if (userinfo) {
+            user = {
+              id: userinfo.id,
+              username: userinfo.sub,
+              displayName: ""
+            };
+            db.users.createUserIfNeeded(user, () => {
+              done(null, user);
+            });
+          }
+        }
+      )
+    );
+  })();
+
+  app.get(
+    "/login/unikname-cas-passphrase-remote",
+    passport.authenticate("oidc-remote-wallet")
+  );
+
+  // authentication callback
+  app.get(
+    "/login/unikname-cas-passphrase-remote/cb",
+    passport.authenticate("oidc-remote-wallet"),
+    function (
+      //{ successRedirect: '/', failureRedirect: '/login' }));
+      req,
+      res
+    ) {
+      res.redirect("/");
+    }
+  );
+}
+
+// ######  ######## ########  ##     ## ######## ########  
+// ##    ## ##       ##     ## ##     ## ##       ##     ## 
+// ##       ##       ##     ## ##     ## ##       ##     ## 
+//  ######  ######   ########  ##     ## ######   ########  
+//       ## ##       ##   ##    ##   ##  ##       ##   ##   
+// ##    ## ##       ##    ##    ## ##   ##       ##    ##  
+//  ######  ######## ##     ##    ###    ######## ##     ## 
 
 app.listen(port, interface);
 console.log("Server started on", `http://${interface}:${port}`);
