@@ -21,7 +21,7 @@ console.log("Public URL of the service", process.env.APP_URL);
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 // Configure OIDC client
-OIDC.Issuer.defaultHttpOptions = { timeout: 5000, retries: 1 };
+OIDC.Issuer.defaultHttpOptions = { timeout: 10000, retries: 1 };
 console.log(
   "OIDC client HTTP configuration %O",
   OIDC.Issuer.defaultHttpOptions
@@ -588,18 +588,24 @@ if (isAuthModeEnabled("CAS_GA")) {
   );
 }
 
-// #######  #### ########   ######     ########     ###     ######   ######  ########  ##     ## ########     ###     ######  ########
-// ##     ##  ##  ##     ## ##    ##    ##     ##   ## ##   ##    ## ##    ## ##     ## ##     ## ##     ##   ## ##   ##    ## ##
-// ##     ##  ##  ##     ## ##          ##     ##  ##   ##  ##       ##       ##     ## ##     ## ##     ##  ##   ##  ##       ##
-// ##     ##  ##  ##     ## ##          ########  ##     ##  ######   ######  ########  ######### ########  ##     ##  ######  ######
-// ##     ##  ##  ##     ## ##          ##        #########       ##       ## ##        ##     ## ##   ##   #########       ## ##
-// ##     ##  ##  ##     ## ##    ##    ##        ##     ## ##    ## ##    ## ##        ##     ## ##    ##  ##     ## ##    ## ##
-//  #######  #### ########   ######     ##        ##     ##  ######   ######  ##        ##     ## ##     ## ##     ##  ######  ########
+//  #######  #### ########   ######     ########  ######## ##     ##  #######  ######## ########    ##      ##    ###    ##       ##       ######## ######## 
+// ##     ##  ##  ##     ## ##    ##    ##     ## ##       ###   ### ##     ##    ##    ##          ##  ##  ##   ## ##   ##       ##       ##          ##    
+// ##     ##  ##  ##     ## ##          ##     ## ##       #### #### ##     ##    ##    ##          ##  ##  ##  ##   ##  ##       ##       ##          ##    
+// ##     ##  ##  ##     ## ##          ########  ######   ## ### ## ##     ##    ##    ######      ##  ##  ## ##     ## ##       ##       ######      ##    
+// ##     ##  ##  ##     ## ##          ##   ##   ##       ##     ## ##     ##    ##    ##          ##  ##  ## ######### ##       ##       ##          ##    
+// ##     ##  ##  ##     ## ##    ##    ##    ##  ##       ##     ## ##     ##    ##    ##          ##  ##  ## ##     ## ##       ##       ##          ##    
+//  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##    
 
-if (isAuthModeEnabled("CAS_PASSPHRASE_LOCAL")) {
+if (isAuthModeEnabled("CAS_PASSPHRASE")) {
   (async function addOIDC_PassphraseStrategy() {
+
+    console.log("uri",process.env.CAS_PASSPHRASE_DISCOVERY_URI)
+    console.log("redirect",process.env.CAS_PASSPHRASE_REDIRECT_URI_CB)
+    console.log("client id",process.env.CAS_PASSPHRASE_CLIENT_ID)
+    console.log("client pass",process.env.CAS_PASSPHRASE_CLIENT_SECRET)
+
     let unAuthIssuer = await OIDC.Issuer.discover(
-      process.env.CAS_PASSPHRASE_LOCAL_DISCOVERY_URI
+      process.env.CAS_PASSPHRASE_DISCOVERY_URI
     ); // => Promise
 
     console.log(
@@ -609,10 +615,10 @@ if (isAuthModeEnabled("CAS_PASSPHRASE_LOCAL")) {
     );
 
     const client = new unAuthIssuer.Client({
-      client_id: process.env.CAS_PASSPHRASE_LOCAL_CLIENT_ID,
-      client_secret: process.env.CAS_PASSPHRASE_LOCAL_CLIENT_SECRET,
+      client_id: process.env.CAS_PASSPHRASE_CLIENT_ID,
+      client_secret: process.env.CAS_PASSPHRASE_CLIENT_SECRET,
       redirect_uris: [
-        `${process.env.APP_URL}/login/unikname-cas-passphrase-local/cb`
+        `${process.env.APP_URL}${process.env.CAS_PASSPHRASE_REDIRECT_URI_CB}`
       ],
       response_types: ["code"]
     });
@@ -622,7 +628,7 @@ if (isAuthModeEnabled("CAS_PASSPHRASE_LOCAL")) {
     };
 
     passport.use(
-      "oidc-passphrase",
+      "oidc-wallet",
       new OIDC.Strategy(
         { client: client, params: params },
         (tokenset, userinfo, done) => {
@@ -643,88 +649,14 @@ if (isAuthModeEnabled("CAS_PASSPHRASE_LOCAL")) {
   })();
 
   app.get(
-    "/login/unikname-cas-passphrase-local",
-    passport.authenticate("oidc-passphrase")
+    process.env.CAS_PASSPHRASE_REDIRECT_URI,
+    passport.authenticate("oidc-wallet")
   );
 
   // authentication callback
   app.get(
-    "/login/unikname-cas-passphrase-local/cb",
-    passport.authenticate("oidc-passphrase"),
-    function(
-      //{ successRedirect: '/', failureRedirect: '/login' }));
-      req,
-      res
-    ) {
-      res.redirect("/");
-    }
-  );
-}
-
-//  #######  #### ########   ######     ########  ######## ##     ##  #######  ######## ########    ##      ##    ###    ##       ##       ######## ######## 
-// ##     ##  ##  ##     ## ##    ##    ##     ## ##       ###   ### ##     ##    ##    ##          ##  ##  ##   ## ##   ##       ##       ##          ##    
-// ##     ##  ##  ##     ## ##          ##     ## ##       #### #### ##     ##    ##    ##          ##  ##  ##  ##   ##  ##       ##       ##          ##    
-// ##     ##  ##  ##     ## ##          ########  ######   ## ### ## ##     ##    ##    ######      ##  ##  ## ##     ## ##       ##       ######      ##    
-// ##     ##  ##  ##     ## ##          ##   ##   ##       ##     ## ##     ##    ##    ##          ##  ##  ## ######### ##       ##       ##          ##    
-// ##     ##  ##  ##     ## ##    ##    ##    ##  ##       ##     ## ##     ##    ##    ##          ##  ##  ## ##     ## ##       ##       ##          ##    
-//  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##    
-
-if (isAuthModeEnabled("CAS_PASSPHRASE_REMOTE")) {
-  (async function addOIDC_RemoteWalletStrategy() {
-
-    let unAuthIssuer = await OIDC.Issuer.discover(
-      process.env.CAS_PASSPHRASE_REMOTE_DISCOVERY_URI
-    ); // => Promise
-
-    console.log(
-      "Discovered Unik-Name Auth\n Issuer: %s\n Metadata:\n%O",
-      unAuthIssuer.issuer,
-      unAuthIssuer.metadata
-    );
-
-    const client = new unAuthIssuer.Client({
-      client_id: process.env.CAS_PASSPHRASE_REMOTE_CLIENT_ID,
-      client_secret: process.env.CAS_PASSPHRASE_REMOTE_CLIENT_SECRET,
-      redirect_uris: [
-        `${process.env.APP_URL}/login/unikname-cas-passphrase-remote/cb`
-      ],
-      response_types: ["code"]
-    });
-
-    const params = {
-      scope: "email"
-    };
-
-    passport.use(
-      "oidc-remote-wallet",
-      new OIDC.Strategy(
-        { client: client, params: params },
-        (tokenset, userinfo, done) => {
-          console.log("userinfo", userinfo);
-          if (userinfo) {
-            user = {
-              id: userinfo.id,
-              username: userinfo.sub,
-              displayName: ""
-            };
-            db.users.createUserIfNeeded(user, () => {
-              done(null, user);
-            });
-          }
-        }
-      )
-    );
-  })();
-
-  app.get(
-    "/login/unikname-cas-passphrase-remote",
-    passport.authenticate("oidc-remote-wallet")
-  );
-
-  // authentication callback
-  app.get(
-    "/login/unikname-cas-passphrase-remote/cb",
-    passport.authenticate("oidc-remote-wallet"),
+    process.env.CAS_PASSPHRASE_REDIRECT_URI_CB,
+    passport.authenticate("oidc-wallet"),
     function (
       //{ successRedirect: '/', failureRedirect: '/login' }));
       req,
