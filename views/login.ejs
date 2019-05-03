@@ -37,19 +37,20 @@
         <div class="login content">
           <h3>CONNECT</h3>
           <div class="login-link">
-            <a class="facebook" href="/login">
+            <div class="facebook" href="/login">
               <i class="fab fa-facebook-f"></i>
               <span>
-                With Facebook</a>
+                With Facebook
               </span>
+            </div>
           </div>
           <div class="login-link">
-            <a class="google" href="/login">
+            <div class="google" href="/login">
               <i class="fab fa-google"></i>
               <span>
-                With Google</a>
+                With Google
               </span>
-            </a>
+            </div>
           </div>
 
           <% if (process.env.LOCAL_PWD_ENABLED === "true" ||
@@ -121,7 +122,7 @@
         </div>
 
         <div class="login-link">
-            <a class="with-email" href="#">With your email</a>
+            <div class="with-email" href="#">With your email</div>
         </div>
 
         <% } else { %>

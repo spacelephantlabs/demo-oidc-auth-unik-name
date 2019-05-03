@@ -189,6 +189,7 @@ h2 {
 
 .container .main-container .informations a,
 .container .main-container .logged .profile-link,
+.container .main-container .login .login-link div,
 .container .main-container .login .login-link a {
   background-color: #ffa407;
   color: #fff;
@@ -205,24 +206,28 @@ h2 {
   font-weight: bold;
 }
 
-.container .main-container .login .login-link a.facebook {
-  background-color: #3b5898;
+.container .main-container .login .login-link .facebook {
+  /* facebook blue color */
+  /* background-color: #3b5898; */
+  background-color: gray;
   position: relative;
 }
 
-.container .main-container .login .login-link a.google {
-  background-color: #ea4336;
+.container .main-container .login .login-link .google {
+  /* Google red color */
+  /* background-color: #ea4336; */
+  background-color: gray;
 }
 
-.container .main-container .login .login-link a.facebook i,
-.container .main-container .login .login-link a.google i {
+.container .main-container .login .login-link .facebook i,
+.container .main-container .login .login-link .google i {
   font-size: 1.5rem;
   position: absolute;
   left: 1rem;
 }
 
-.container .main-container .login .login-link a.facebook,
-.container .main-container .login .login-link a.google,
+.container .main-container .login .login-link .facebook,
+.container .main-container .login .login-link .google,
 .container .main-container .login .login-link .unik-name {
   position: relative;
 }
@@ -234,7 +239,7 @@ h2 {
 }
 
 
-.container .main-container .login .login-link a.with-email {
+.container .main-container .login .login-link .with-email {
   background-color: gray;
 }
 
