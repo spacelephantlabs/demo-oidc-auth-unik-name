@@ -89,9 +89,16 @@ if (process.env.APP_ENFORCE_TLS) {
 app.use(passport.initialize());
 app.use(passport.session());
 
+let casPassphraseRedirectURI = process.env.CAS_PASSPHRASE_REDIRECT_URI
+  ? process.env.CAS_PASSPHRASE_REDIRECT_URI
+  : "/login/unikname-cas-passphrase";
+
 // Define routes.
 app.get("/", function(req, res) {
-  res.render("home", { user: req.user });
+  res.render("home", {
+    user: req.user,
+    casPassphraseRedirectURI: casPassphraseRedirectURI
+  });
 });
 
 app.get("/login", function(req, res) {
@@ -597,10 +604,6 @@ if (isAuthModeEnabled("CAS_GA")) {
 //  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##
 
 if (isAuthModeEnabled("CAS_PASSPHRASE")) {
-  let CAS_PASSPHRASE_REDIRECT_URI = process.env.CAS_PASSPHRASE_REDIRECT_URI
-    ? process.env.CAS_PASSPHRASE_REDIRECT_URI
-    : "/login/unikname-cas-passphrase";
-
   let CAS_PASSPHRASE_REDIRECT_URI_CB = process.env
     .CAS_PASSPHRASE_REDIRECT_URI_CB
     ? process.env.CAS_PASSPHRASE_REDIRECT_URI_CB
@@ -656,7 +659,7 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
     );
   })();
 
-  app.get(CAS_PASSPHRASE_REDIRECT_URI, passport.authenticate("oidc-wallet"));
+  app.get(casPassphraseRedirectURI, passport.authenticate("oidc-wallet"));
 
   // authentication callback
   app.get(
