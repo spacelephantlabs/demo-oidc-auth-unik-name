@@ -96,13 +96,15 @@ let casPassphraseRedirectURI = process.env.CAS_PASSPHRASE_REDIRECT_URI
 // Define routes.
 app.get("/", function(req, res) {
   res.render("home", {
-    user: req.user,
-    casPassphraseRedirectURI: casPassphraseRedirectURI
+    user: req.user
   });
 });
 
 app.get("/login", function(req, res) {
-  res.render("login");
+  res.render("login", {
+    user: req.user,
+    casPassphraseRedirectURI: casPassphraseRedirectURI
+  });
 });
 
 app.post(

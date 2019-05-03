@@ -4,85 +4,63 @@
   rel="stylesheet"
 />
 
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/solid.css" integrity="sha384-QokYePQSOwpBDuhlHOsX0ymF6R/vLk/UQVz3WHa6wygxI5oGTmDTv8wahFOSspdm" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/fontawesome.css" integrity="sha384-vd1e11sR28tEK9YANUtpIOdjGW14pS87bUBuOIoBILVWLFnS+MCX9T6MMf0VdPGq" crossorigin="anonymous">
+
 <div class="container">
-  <nav class="menu">
+    <% if (user) { %>
+      <nav class="menu colored">
+    <% } else { %>
+      <nav class="menu">
+    <% } %>
     <div>
-      <h1>My sample application</h1>
+      <a class="home-link" href="/">
+        <h1>My sample application</h1>
+      </a>
     </div>
     <ul>
-      <li><a href="#">Home</a></li>
+      <% if (user) { %>
+      <li><a href="/">Home</a></li>
       <li><a href="#">About</a></li>
       <li><a href="#">Contact</a></li>
-      <% if (user) { %>
-      <li><a href="/profile">👨 My Profile</a></li>
+      <li><a class="hello" href="/profile"><i class="fas fa-user"></i> <%= user.username %></a></li>
+      <li><a class="logout-link" href="/logout">Logout</a></li>
+      <% } else { %>
+        <li><a href="/login">Login</a></li>
       <% } %>
     </ul>
   </nav>
   <div class="main-container">
-    <% if (!user) { %>
-    <h2>Login</h2>
-    <div class="login content">
-      <div>
-        <p>Welcome! Please login with:</p>
+    <% if (user) { %>
+
+      <h2>Welcome <%= user.username %>!</h2>
+      <p class="description">
+          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Reiciendis fugiat nobis possimus blanditiis, est nesciunt, libero tempora aliquam aut facere corrupti dolor voluptatibus maiores sapiente nam repellendus vero assumenda doloremque.
+      </p>
+
+      <div class="buttons">
+        <a class="btn" href="/profile">Go to my profile</a>
       </div>
-      <% if (process.env.LOCAL_PWD_ENABLED === "true" ||
-      process.env.GITHUB_ENABLED === "true" || process.env.KEYCLOAK_ENABLED ===
-      "true" || process.env.CAS_SIMPLE_ENABLED === "true" ||
-      process.env.CAS_PWDLESS_ENABLED === "true" ||
-      process.env.CAS_PASSPHRASE_LOCAL_ENABLED === "true") { %>
-      <h3>1FA</h3>
-      <% } %> <% if (process.env.LOCAL_PWD_ENABLED === "true") { %>
-      <div class="login-link">
-        <a href="/login">local password</a>
+
+      <% } else { %>
+
+      <h2>Lorem Ipsum dolor</h2>
+      <p class="description">
+          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Reiciendis fugiat nobis possimus blanditiis, est nesciunt, libero tempora aliquam aut facere corrupti dolor voluptatibus maiores sapiente nam repellendus vero assumenda doloremque.
+      </p>
+
+      <div class="table">
+        <div>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Prima zril primis eu sed, mei ei eirmod moderatius adversarium. Pri viderer tamquam ei. Scripta periculis ei eam, te pro movet reformidans. Pri posse graeco definitiones cu, id eam populo quaestio adipiscing, usu quod malorum te. Pri posse graeco definitiones cu, id eam populo quaestio adipiscing, usu quod malorum te. Scripta periculis ei eam, te pro movet reformidans. Offendit eleifend moderatius ex vix, quem odio mazim et qui, purto expetendis cotidieque quo cu, veri persius vituperata ei nec. Vivendum intellegat et qui, ei denique consequuntur vix. Pri posse graeco definitiones cu, id eam populo quaestio adipiscing, usu quod malorum te. Vis labore scripta ne, ut alii mediocritatem his. Eos ex affert fabulas iudicabit, dolore ornatus instructior ex per. Pri posse graeco definitiones cu, id eam populo quaestio adipiscing, usu quod malorum te.
+          </p>
+        </div>
+        <div class="img-container">
+          <img src="/images/lock.jpg">
+        </div>
       </div>
-      <% } %> <% if (process.env.GITHUB_ENABLED === "true") { %>
-      <div class="login-link">
-        <a href="/login/github">github</a>
-      </div>
-      <% } %> <% if (process.env.KEYCLOAK_ENABLED === "true") { %>
-      <div class="login-link">
-        <a href="/login/unikname">Unik-Name Keycloak</a>
-      </div>
-      <% } %> <% if (process.env.CAS_SIMPLE_ENABLED === "true") { %>
-      <div class="login-link">
-        <a href="/login/unikname-cas">Unik-Name CAS (LOGIN/MDP)</a>
-      </div>
-      <% } %> <% if (process.env.CAS_PWDLESS_ENABLED === "true") { %>
-      <div class="login-link">
-        <a href="/login/unikname-cas-pwdless">Unik-Name CAS (PASSWORDLESS)</a>
-      </div>
-      <% } %> <% if (process.env.CAS_PASSPHRASE_ENABLED === "true") { %>
-      <div class="login-link">
-        <a href="<%= casPassphraseRedirectURI %>">Unik-Name wallet</a>
-      </div>
-      <% } %> <% if (process.env.CAS_U2F_ENABLED === "true" ||
-      process.env.CAS_GA_ENABLED === "true" || process.env.CAS_DELEGATE_ENABLED
-      === "true") { %>
-      <h3>2FA</h3>
-      <% } %> <% if (process.env.CAS_U2F_ENABLED === "true") { %>
-      <div class="login-link">
-        <a href="/login/unikname-cas-u2f">Unik-Name CAS (U2F)</a>
-      </div>
-      <% } %> <% if (process.env.CAS_GA_ENABLED === "true") { %>
-      <div class="login-link">
-        <a href="/login/unikname-cas-ga"
-          >Unik-Name CAS (Google Authenticator)</a
-        >
-      </div>
-      <% } %> <% if (process.env.CAS_DELEGATE_ENABLED === "true") { %>
-      <div class="login-link">
-        <a href="/login/unikname-cas-delegate">Unik-Name CAS MFA Delegation</a>
-      </div>
-    </div>
-    <% } %> <% } else { %>
-    <h2>
-      Login success
-    </h2>
-    <div class="logged content">
-      <p>Hello, <span class="username"><%= user.username %></span></p>
-      <a class="profile-link" href="/profile"> View your profile</a>
+
       <% } %>
-    </div>
   </div>
   <footer>
     <a class="se-link" href="https://www.spacelephant.org" target="_blank"

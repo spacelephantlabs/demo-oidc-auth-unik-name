@@ -1,18 +1,32 @@
 <link href="/css/style.css" rel="stylesheet" type="text/css" />
 <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet">
 
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/solid.css" integrity="sha384-QokYePQSOwpBDuhlHOsX0ymF6R/vLk/UQVz3WHa6wygxI5oGTmDTv8wahFOSspdm" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/fontawesome.css" integrity="sha384-vd1e11sR28tEK9YANUtpIOdjGW14pS87bUBuOIoBILVWLFnS+MCX9T6MMf0VdPGq" crossorigin="anonymous">
+
 <div class="container">
-  <nav class="menu">
+    <% if (user) { %>
+      <nav class="menu colored">
+    <% } else { %>
+      <nav class="menu">
+    <% } %>
     <div>
-      <h1>My sample application</h1>
+        <a class="home-link" href="/">
+          <h1>My sample application</h1>
+        </a>
     </div>
     <ul>
-      <li><a href="#">Home</a></li>
-      <li><a href="#">About</a></li>
-      <li><a href="#">Contact</a></li>
-      <% if (user) { %>
-      <li><a href="/logout">Logout</a></li>
-      <% } %>
+        <ul>
+            <% if (user) { %>
+            <li><a href="/">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a class="hello" href="/profile"><i class="fas fa-user"></i> <%= user.username %></a></li>
+            <li><a class="logout-link" href="/logout">Logout</a></li>
+            <% } else { %>
+              <li><a href="/login">Login</a></li>
+            <% } %>
+          </ul>
     </ul>
   </nav>
   <div class="main-container">
@@ -31,7 +45,6 @@
         <li><label>Email</label>: <span class="value"><%= user.emails[0].value %></span></li>
         <% } %>
       </ul>
-      <a href="/logout">Log out</a>
     </div>
   </div>
   <footer>

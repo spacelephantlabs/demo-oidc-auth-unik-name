@@ -3,7 +3,7 @@ body {
   background: linear-gradient(0.9turn, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.9)),
     url(/images/univers.jpg);
   background-repeat: no-repeat;
-  background-size: cover;
+  background-size: auto;
   color: #fff;
   margin: 0px;
   font-family: "Montserrat", sans-serif;
@@ -14,13 +14,26 @@ nav {
   display: flex;
   flex-direction: row;
   align-items: center;
-  background: #000537;
+
   color: #fff;
+}
+
+nav.colored {
+  background: #000537;
   border-bottom: 1px solid #fff;
 }
 
+nav .home-link,
+nav .home-link:active,
+nav .home-link:focus,
+nav .home-link:hover,
+nav .home-link:visited {
+  text-decoration: none;
+  color: #fff;
+}
+
 nav h1 {
-  font-size: 1.5em;
+  font-size: 1.2em;
   margin: 0 0 0 2rem;
 }
 
@@ -28,12 +41,49 @@ nav ul {
   display: flex;
   flex-direction: row;
   flex: 1;
-  justify-content: space-around;
+  justify-content: flex-end;
+  align-items: center;
   list-style: none;
 }
 
 nav ul li a {
   color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+  margin: 0 2rem;
+  opacity: 0.7;
+}
+
+nav ul li a.hello {
+  opacity: 1;
+}
+
+nav ul li a.logout-link {
+  opacity: 0.4;
+}
+
+nav ul li a:hover {
+  opacity: 1;
+}
+
+.fa-user {
+  border: solid 2px #fff;
+  border-radius: 50%;
+  padding: 0.25rem;
+  font-size: 0.8em;
+}
+
+.buttons {
+  margin-top: 2rem;
+}
+
+.btn {
+  border: 2px solid #fff;
+  border-radius: 20px;
+  padding: 1rem 1.5rem;
+  color: #fff;
+  text-transform: uppercase;
+  font-weight: bold;
   text-decoration: none;
 }
 
@@ -64,6 +114,7 @@ h1 {
 
 h2 {
   color: #fff;
+  font-size: 2rem;
 }
 
 .content {
@@ -85,7 +136,36 @@ h2 {
 }
 
 .container .main-container .description {
-  font-size: 1.5em;
+  font-size: 1.2em;
+  width: 80%;
+  font-weight: bold;
+  font-style: italic;
+  text-align: center;
+}
+
+.container .main-container .table {
+  width: 80%;
+  padding: 2rem 1rem;
+  align-items: center;
+  display: flex;
+  flex-flow: column;
+  text-align: justify;
+}
+
+.container .main-container .table > div {
+  display: flex;
+  width: 100%;
+  padding: 1rem;
+}
+
+.container .main-container .table div.img-container {
+  align-items: center;
+  justify-content: center;
+}
+
+.container .main-container .table div.img-container img {
+  height: auto;
+  max-width: 80%;
 }
 
 .container .main-container .login {
@@ -119,12 +199,86 @@ h2 {
   text-align: center;
   width: 80%;
   transition: font-weight 0.2s linear;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
 }
 
-.container .main-container .informations a:hover,
-.container .main-container .logged .profile-link:hover,
-.container .main-container .login .login-link a:hover {
+.container .main-container .login .login-link a.facebook {
+  background-color: #3b5898;
+  position: relative;
+}
+
+.container .main-container .login .login-link a.google {
+  background-color: #ea4336;
+}
+
+.container .main-container .login .login-link a.facebook i,
+.container .main-container .login .login-link a.google i {
+  font-size: 1.5rem;
+  position: absolute;
+  left: 1rem;
+}
+
+.container .main-container .login .login-link a.facebook,
+.container .main-container .login .login-link a.google,
+.container .main-container .login .login-link .unik-name {
+  position: relative;
+}
+
+.container .main-container .login .login-link a img.unik-name-logo {
+  height: 25px;
+  position: absolute;
+  left: 1rem;
+}
+
+
+.container .main-container .login .login-link a.with-email {
+  background-color: gray;
+}
+
+.container .main-container .login .inputs {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.container .main-container .login .inputs input {
+  width: 70%;
+  margin: 0.5rem 0;
+  line-height: 2rem;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  outline: none;
+  border: 0px;
+  background-color: lightgrey;
+}
+
+.container .main-container .login .or-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 85%;
+  margin: 2rem 0;
+}
+
+.container .main-container .login .or-container .or {
+  color: #808291;
+  padding: 0 1rem;
   font-weight: bold;
+}
+
+.container .main-container .login .or-container .trait {
+  background-color: #808291;
+  height: 2px;
+  width: 100%;
+}
+
+.container .main-container .login .or-container > span {
+  display: flex;
 }
 
 .container .main-container .informations,
@@ -167,11 +321,31 @@ h2 {
 }
 
 @media screen and (min-width: 1200px) {
+
+  body {
+    background-size: cover;
+  }
+
   .container .main-container .informations,
   .container .main-container .logged,
   .container .main-container .login {
     width: 40%;
   }
+
+  .container .main-container .description,
+  .container .main-container .table {
+    width: 70%;
+  }
+
+  .container .main-container .table {
+    text-align: left;
+    flex-direction: row;
+  }
+
+  .container .main-container .table > div {
+    width: calc(50% - 2rem);
+  }
+
 }
 
 @media screen and (min-width: 1600px) {
@@ -179,5 +353,10 @@ h2 {
   .container .main-container .logged,
   .container .main-container .login {
     width: 30%;
+  }
+
+  .container .main-container .description,
+  .container .main-container .table {
+    width: 60%;
   }
 }

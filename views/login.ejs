@@ -1,13 +1,143 @@
-<form action="/login" method="post">
-	<div>
-	<label>Username:</label>
-	<input type="text" name="username"/><br/>
-	</div>
-	<div>
-	<label>Password:</label>
-	<input type="password" name="password"/>
-	</div>
-	<div>
-	<input type="submit" value="Submit"/>
-	</div>
-</form>
+  <link href="/css/style.css" rel="stylesheet" type="text/css" />
+<link
+  href="https://fonts.googleapis.com/css?family=Montserrat:400,700"
+  rel="stylesheet"
+/>
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/brands.css" integrity="sha384-n9+6/aSqa9lBidZMRCQHTHKJscPq6NW4pCQBiMmHdUCvPN8ZOg2zJJTkC7WIezWv" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/fontawesome.css" integrity="sha384-vd1e11sR28tEK9YANUtpIOdjGW14pS87bUBuOIoBILVWLFnS+MCX9T6MMf0VdPGq" crossorigin="anonymous">
+
+<div class="container">
+    <% if (user) { %>
+      <nav class="menu colored">
+    <% } else { %>
+      <nav class="menu">
+    <% } %>
+    <div>
+        <a class="home-link" href="/">
+          <h1>My sample application</h1>
+        </a>
+    </div>
+    <ul>
+        <ul>
+            <% if (user) { %>
+            <li><a href="/">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a class="hello" href="/profile"><i class="fas fa-user"></i> <%= user.username %></a></li>
+            <li><a class="logout-link" href="/logout">Logout</a></li>
+            <% } else { %>
+              <li><a href="/login">Login</a></li>
+            <% } %>
+          </ul>
+    </ul>
+  </nav>
+  <div class="main-container">
+      <% if (!user) { %>
+        <div class="login content">
+          <h3>CONNECT</h3>
+          <div class="login-link">
+            <a class="facebook" href="/login">
+              <i class="fab fa-facebook-f"></i>
+              <span>
+                With Facebook</a>
+              </span>
+          </div>
+          <div class="login-link">
+            <a class="google" href="/login">
+              <i class="fab fa-google"></i>
+              <span>
+                With Google</a>
+              </span>
+            </a>
+          </div>
+
+          <% if (process.env.LOCAL_PWD_ENABLED === "true" ||
+          process.env.GITHUB_ENABLED === "true" || process.env.KEYCLOAK_ENABLED ===
+          "true" || process.env.CAS_SIMPLE_ENABLED === "true" ||
+          process.env.CAS_PWDLESS_ENABLED === "true" ||
+          process.env.CAS_PASSPHRASE_LOCAL_ENABLED === "true") { %>
+          <h3>1FA</h3>
+          <% } %> <% if (process.env.LOCAL_PWD_ENABLED === "true") { %>
+          <div class="login-link">
+            <a href="/login">local password</a>
+          </div>
+          <% } %> <% if (process.env.GITHUB_ENABLED === "true") { %>
+          <div class="login-link">
+            <a href="/login/github">github</a>
+          </div>
+          <% } %> <% if (process.env.KEYCLOAK_ENABLED === "true") { %>
+          <div class="login-link">
+            <a href="/login/unikname">Unik-Name Keycloak</a>
+          </div>
+          <% } %> <% if (process.env.CAS_SIMPLE_ENABLED === "true") { %>
+          <div class="login-link">
+            <a href="/login/unikname-cas">Unik-Name CAS (LOGIN/MDP)</a>
+          </div>
+          <% } %> <% if (process.env.CAS_PWDLESS_ENABLED === "true") { %>
+          <div class="login-link">
+            <a href="/login/unikname-cas-pwdless">Unik-Name CAS (PASSWORDLESS)</a>
+          </div>
+          <% } %> <% if (process.env.CAS_PASSPHRASE_ENABLED === "true") { %>
+          <div class="login-link">
+            <a class="unik-name" href="<%= casPassphraseRedirectURI %>">
+                <img class="unik-name-logo" src="/images/unik-name.png"/>
+                <span>
+                  With Unik-Name</a>
+                </span>
+            </a>
+          </div>
+          <% } %> <% if (process.env.CAS_U2F_ENABLED === "true" ||
+          process.env.CAS_GA_ENABLED === "true" || process.env.CAS_DELEGATE_ENABLED
+          === "true") { %>
+          <h3>2FA</h3>
+          <% } %> <% if (process.env.CAS_U2F_ENABLED === "true") { %>
+          <div class="login-link">
+            <a href="/login/unikname-cas-u2f">Unik-Name CAS (U2F)</a>
+          </div>
+          <% } %> <% if (process.env.CAS_GA_ENABLED === "true") { %>
+          <div class="login-link">
+            <a href="/login/unikname-cas-ga"
+              >Unik-Name CAS (Google Authenticator)</a
+            >
+          </div>
+          <% } %> <% if (process.env.CAS_DELEGATE_ENABLED === "true") { %>
+          <div class="login-link">
+            <a href="/login/unikname-cas-delegate">Unik-Name CAS MFA Delegation</a>
+          </div>
+        </div>
+        <% } %>
+        <div class="or-container">
+          <span class="trait"></span>
+          <span class="or">
+            OR
+          </span>
+          <span class="trait"></span>
+        </div>
+
+        <div class="inputs">
+          <input type="email" placeholder="EMAIL"/>
+          <input type="password" placeholder="PASSWORD"/>
+        </div>
+
+        <div class="login-link">
+            <a class="with-email" href="#">With your email</a>
+        </div>
+
+        <% } else { %>
+        <h2>
+          Login success
+        </h2>
+        <div class="logged content">
+          <p>Hello, <span class="username"><%= user.username %></span></p>
+          <a class="profile-link" href="/profile"> View your profile</a>
+          <% } %>
+        </div>
+
+  </div>
+  <footer>
+    <a class="se-link" href="https://www.spacelephant.org" target="_blank"
+      >spacelephant.org</a
+    >
+  </footer>
+</div>
