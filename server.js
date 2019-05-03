@@ -120,6 +120,11 @@ app.get("/logout", function(req, res) {
   res.redirect("/");
 });
 
+app.get("/welcome", require("connect-ensure-login").ensureLoggedIn(),
+function(req, res) {
+  res.render("welcome", { user: req.user });
+});
+
 app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
   req,
   res
@@ -672,7 +677,7 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
       req,
       res
     ) {
-      res.redirect("/");
+      res.redirect("/welcome");
     }
   );
 }

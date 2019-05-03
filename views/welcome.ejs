@@ -1,0 +1,48 @@
+<link href="/css/style.css" rel="stylesheet" type="text/css" />
+<link
+  href="https://fonts.googleapis.com/css?family=Montserrat:400,700"
+  rel="stylesheet"
+/>
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/solid.css" integrity="sha384-QokYePQSOwpBDuhlHOsX0ymF6R/vLk/UQVz3WHa6wygxI5oGTmDTv8wahFOSspdm" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/fontawesome.css" integrity="sha384-vd1e11sR28tEK9YANUtpIOdjGW14pS87bUBuOIoBILVWLFnS+MCX9T6MMf0VdPGq" crossorigin="anonymous">
+
+<div class="container">
+    <% if (user) { %>
+      <nav class="menu colored">
+    <% } else { %>
+      <nav class="menu">
+    <% } %>
+    <div>
+      <a class="home-link" href="/">
+        <h1>My sample application</h1>
+      </a>
+    </div>
+    <ul>
+      <% if (user) { %>
+      <li><a href="/">Home</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Contact</a></li>
+      <li><a class="hello" href="/profile"><i class="fas fa-user"></i> <%= user.username %></a></li>
+      <li><a class="logout-link" href="/logout">Logout</a></li>
+      <% } else { %>
+        <li><a href="/login">Login</a></li>
+      <% } %>
+    </ul>
+  </nav>
+  <div class="main-container">
+    <h2>Welcome <%= user.username %>!</h2>
+    <p class="description">
+        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Reiciendis fugiat nobis possimus blanditiis, est nesciunt, libero tempora aliquam aut facere corrupti dolor voluptatibus maiores sapiente nam repellendus vero assumenda doloremque.
+    </p>
+
+    <div class="buttons">
+      <a class="btn" href="/profile">Go to my profile</a>
+    </div>
+  </div>
+  <footer>
+    <a class="se-link" href="https://www.spacelephant.org" target="_blank"
+      >spacelephant.org</a
+    >
+  </footer>
+</div>
