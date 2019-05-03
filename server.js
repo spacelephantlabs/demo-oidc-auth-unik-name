@@ -588,22 +588,30 @@ if (isAuthModeEnabled("CAS_GA")) {
   );
 }
 
-//  #######  #### ########   ######     ########  ######## ##     ##  #######  ######## ########    ##      ##    ###    ##       ##       ######## ######## 
-// ##     ##  ##  ##     ## ##    ##    ##     ## ##       ###   ### ##     ##    ##    ##          ##  ##  ##   ## ##   ##       ##       ##          ##    
-// ##     ##  ##  ##     ## ##          ##     ## ##       #### #### ##     ##    ##    ##          ##  ##  ##  ##   ##  ##       ##       ##          ##    
-// ##     ##  ##  ##     ## ##          ########  ######   ## ### ## ##     ##    ##    ######      ##  ##  ## ##     ## ##       ##       ######      ##    
-// ##     ##  ##  ##     ## ##          ##   ##   ##       ##     ## ##     ##    ##    ##          ##  ##  ## ######### ##       ##       ##          ##    
-// ##     ##  ##  ##     ## ##    ##    ##    ##  ##       ##     ## ##     ##    ##    ##          ##  ##  ## ##     ## ##       ##       ##          ##    
-//  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##    
+//  #######  #### ########   ######     ########  ######## ##     ##  #######  ######## ########    ##      ##    ###    ##       ##       ######## ########
+// ##     ##  ##  ##     ## ##    ##    ##     ## ##       ###   ### ##     ##    ##    ##          ##  ##  ##   ## ##   ##       ##       ##          ##
+// ##     ##  ##  ##     ## ##          ##     ## ##       #### #### ##     ##    ##    ##          ##  ##  ##  ##   ##  ##       ##       ##          ##
+// ##     ##  ##  ##     ## ##          ########  ######   ## ### ## ##     ##    ##    ######      ##  ##  ## ##     ## ##       ##       ######      ##
+// ##     ##  ##  ##     ## ##          ##   ##   ##       ##     ## ##     ##    ##    ##          ##  ##  ## ######### ##       ##       ##          ##
+// ##     ##  ##  ##     ## ##    ##    ##    ##  ##       ##     ## ##     ##    ##    ##          ##  ##  ## ##     ## ##       ##       ##          ##
+//  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##
 
 if (isAuthModeEnabled("CAS_PASSPHRASE")) {
+  let CAS_PASSPHRASE_REDIRECT_URI = process.env.CAS_PASSPHRASE_REDIRECT_URI
+    ? process.env.CAS_PASSPHRASE_REDIRECT_URI
+    : "/login/unikname-cas-passphrase";
+
+  let CAS_PASSPHRASE_REDIRECT_URI_CB = process.env
+    .CAS_PASSPHRASE_REDIRECT_URI_CB
+    ? process.env.CAS_PASSPHRASE_REDIRECT_URI_CB
+    : "/login/unikname-cas-passphrase/cb";
+
+  console.log("Auth server uri:", process.env.CAS_PASSPHRASE_DISCOVERY_URI);
+  console.log("Local callback redirect URI:", CAS_PASSPHRASE_REDIRECT_URI_CB);
+  console.log("OIDC client id:", process.env.CAS_PASSPHRASE_CLIENT_ID);
+  console.log("OIDC client pass:", process.env.CAS_PASSPHRASE_CLIENT_SECRET);
+
   (async function addOIDC_PassphraseStrategy() {
-
-    console.log("uri",process.env.CAS_PASSPHRASE_DISCOVERY_URI)
-    console.log("redirect",process.env.CAS_PASSPHRASE_REDIRECT_URI_CB)
-    console.log("client id",process.env.CAS_PASSPHRASE_CLIENT_ID)
-    console.log("client pass",process.env.CAS_PASSPHRASE_CLIENT_SECRET)
-
     let unAuthIssuer = await OIDC.Issuer.discover(
       process.env.CAS_PASSPHRASE_DISCOVERY_URI
     ); // => Promise
@@ -618,7 +626,7 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
       client_id: process.env.CAS_PASSPHRASE_CLIENT_ID,
       client_secret: process.env.CAS_PASSPHRASE_CLIENT_SECRET,
       redirect_uris: [
-        `${process.env.APP_URL}${process.env.CAS_PASSPHRASE_REDIRECT_URI_CB}`
+        `${process.env.APP_URL}${CAS_PASSPHRASE_REDIRECT_URI_CB}`
       ],
       response_types: ["code"]
     });
@@ -648,16 +656,13 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
     );
   })();
 
-  app.get(
-    process.env.CAS_PASSPHRASE_REDIRECT_URI,
-    passport.authenticate("oidc-wallet")
-  );
+  app.get(CAS_PASSPHRASE_REDIRECT_URI, passport.authenticate("oidc-wallet"));
 
   // authentication callback
   app.get(
-    process.env.CAS_PASSPHRASE_REDIRECT_URI_CB,
+    CAS_PASSPHRASE_REDIRECT_URI_CB,
     passport.authenticate("oidc-wallet"),
-    function (
+    function(
       //{ successRedirect: '/', failureRedirect: '/login' }));
       req,
       res
@@ -667,13 +672,13 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
   );
 }
 
-// ######  ######## ########  ##     ## ######## ########  
-// ##    ## ##       ##     ## ##     ## ##       ##     ## 
-// ##       ##       ##     ## ##     ## ##       ##     ## 
-//  ######  ######   ########  ##     ## ######   ########  
-//       ## ##       ##   ##    ##   ##  ##       ##   ##   
-// ##    ## ##       ##    ##    ## ##   ##       ##    ##  
-//  ######  ######## ##     ##    ###    ######## ##     ## 
+// ######  ######## ########  ##     ## ######## ########
+// ##    ## ##       ##     ## ##     ## ##       ##     ##
+// ##       ##       ##     ## ##     ## ##       ##     ##
+//  ######  ######   ########  ##     ## ######   ########
+//       ## ##       ##   ##    ##   ##  ##       ##   ##
+// ##    ## ##       ##    ##    ## ##   ##       ##    ##
+//  ######  ######## ##     ##    ###    ######## ##     ##
 
 app.listen(port, interface);
 console.log("Server started on", `http://${interface}:${port}`);
