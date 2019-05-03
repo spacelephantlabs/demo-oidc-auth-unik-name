@@ -91,7 +91,7 @@ app.use(passport.session());
 
 let casPassphraseRedirectURI = process.env.CAS_PASSPHRASE_REDIRECT_URI
   ? process.env.CAS_PASSPHRASE_REDIRECT_URI
-  : "/login/unikname-cas-passphrase";
+  : "/login/unikname";
 
 // Define routes.
 app.get("/", function(req, res) {
@@ -120,8 +120,10 @@ app.get("/logout", function(req, res) {
   res.redirect("/");
 });
 
-app.get("/welcome", require("connect-ensure-login").ensureLoggedIn(),
-function(req, res) {
+app.get("/welcome", require("connect-ensure-login").ensureLoggedIn(), function(
+  req,
+  res
+) {
   res.render("welcome", { user: req.user });
 });
 
