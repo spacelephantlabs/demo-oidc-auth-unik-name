@@ -5,9 +5,7 @@ const db = require("./db");
 const assert = require("assert");
 
 const Strategy = require("passport-local").Strategy;
-const GitHubStrategy = require("passport-github").Strategy;
 const OIDC = require("openid-client");
-const KeycloakStrategy = require("@exlinc/keycloak-passport");
 
 require("custom-env").env(true);
 
@@ -89,22 +87,32 @@ if (process.env.APP_ENFORCE_TLS) {
 app.use(passport.initialize());
 app.use(passport.session());
 
-let casPassphraseRedirectURI = process.env.CAS_PASSPHRASE_REDIRECT_URI
-  ? process.env.CAS_PASSPHRASE_REDIRECT_URI
-  : "/login/unikname";
+let casPassphraseRedirectURI = "/login/unikname";
 
 // Define routes.
 app.get("/", function(req, res) {
+  mode = {
+    social: (req.query.social === undefined) ? true : (req.query.social === 'true'),
+    sli: (req.query.sli === undefined) ? true : (req.query.sli === 'true'),
+    emailpwd: (req.query.emailpwd === undefined) ? false : (req.query.emailpwd === 'true'),
+  }
+  req.session.mode = mode;
   res.render("home", {
     user: req.user
   });
 });
 
 app.get("/login", function(req, res) {
-  res.render("login", {
-    user: req.user,
-    casPassphraseRedirectURI: casPassphraseRedirectURI
-  });
+  let redirect = `${(req.session.mode && req.session.mode.sli) ? '/sli' : ''}${casPassphraseRedirectURI}`
+  if (req.session.mode && !req.session.mode.social && !req.session.mode.emailpwd) {
+    res.redirect(redirect);
+  } else {
+    res.render("login", {
+      user: req.user,
+      casPassphraseRedirectURI: redirect,
+      mode: req.session.mode
+    });
+  }
 });
 
 app.post(
@@ -116,8 +124,12 @@ app.post(
 );
 
 app.get("/logout", function(req, res) {
+  let mode = req.session.mode;
   req.logout();
-  res.redirect("/");
+  // redirect to / reset session.mode, do not reset on logout!
+  res.render("home", {
+    user: undefined
+  });
 });
 
 app.get("/welcome", require("connect-ensure-login").ensureLoggedIn(), function(
@@ -176,434 +188,6 @@ if (isAuthModeEnabled("LOCAL_PWD")) {
   );
 }
 
-// ######   #### ######## ##     ## ##     ## ########
-// ##    ##   ##     ##    ##     ## ##     ## ##     ##
-// ##         ##     ##    ##     ## ##     ## ##     ##
-// ##   ####  ##     ##    ######### ##     ## ########
-// ##    ##   ##     ##    ##     ## ##     ## ##     ##
-// ##    ##   ##     ##    ##     ## ##     ## ##     ##
-//  ######   ####    ##    ##     ##  #######  ########
-
-if (isAuthModeEnabled("GITHUB")) {
-  passport.use(
-    new GitHubStrategy(
-      {
-        clientID: process.env.GITHUB_CLIENT_ID,
-        clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        callbackURL: `${process.env.APP_URL}/login/github/callback`
-      },
-      function(accessToken, refreshToken, profile, cb) {
-        let user;
-        if (profile) {
-          user = {
-            id: profile.id,
-            username: profile.username,
-            displayName: profile.displayName,
-            emails: profile.emails
-          };
-        }
-        db.users.createUserIfNeeded(user, () => {
-          cb(null, user);
-        });
-      }
-    )
-  );
-
-  app.get("/login/github", passport.authenticate("github"));
-
-  app.get(
-    "/login/github/callback",
-    passport.authenticate("github", { failureRedirect: "/login" }),
-    function(req, res) {
-      // Successful authentication, redirect home.
-      res.redirect("/");
-    }
-  );
-}
-// ##    ## ######## ##    ##  ######  ##        #######     ###     ######  ##    ##
-// ##   ##  ##        ##  ##  ##    ## ##       ##     ##   ## ##   ##    ## ##   ##
-// ##  ##   ##         ####   ##       ##       ##     ##  ##   ##  ##       ##  ##
-// #####    ######      ##    ##       ##       ##     ## ##     ## ##       #####
-// ##  ##   ##          ##    ##       ##       ##     ## ######### ##       ##  ##
-// ##   ##  ##          ##    ##    ## ##       ##     ## ##     ## ##    ## ##   ##
-// ##    ## ########    ##     ######  ########  #######  ##     ##  ######  ##    ##
-if (isAuthModeEnabled("KEYCLOAK")) {
-  assert(process.env.KEYCLOAK_HOST, "process.env.KEYCLOAK_HOST missing");
-  assert(process.env.KEYCLOAK_REALM, "process.env.KEYCLOAK_REALM missing");
-  assert(
-    process.env.KEYCLOAK_CLIENT_ID,
-    "process.env.KEYCLOAK_CLIENT_ID missing"
-  );
-  assert(
-    process.env.KEYCLOAK_CLIENT_SECRET,
-    "process.env.KEYCLOAK_CLIENT_SECRET missing"
-  );
-
-  // Keycloak
-  passport.use(
-    "keycloak",
-    new KeycloakStrategy(
-      {
-        host: process.env.KEYCLOAK_HOST,
-        realm: process.env.KEYCLOAK_REALM,
-        clientID: process.env.KEYCLOAK_CLIENT_ID,
-        clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
-        callbackURL: `${process.env.APP_URL}/login/unikname/callback`,
-        authorizationURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${
-          process.env.KEYCLOAK_REALM
-        }/protocol/openid-connect/auth`,
-        tokenURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${
-          process.env.KEYCLOAK_REALM
-        }/protocol/openid-connect/token`,
-        userInfoURL: `${process.env.KEYCLOAK_HOST}/auth/realms/${
-          process.env.KEYCLOAK_REALM
-        }/protocol/openid-connect/userinfo`
-      },
-      (accessToken, refreshToken, profile, done) => {
-        // This is called after a successful authentication has been completed
-        // Here's a sample of what you can then do, i.e., write the user to your DB
-        if (profile) {
-          user = {
-            id: profile.keycloakId,
-            username: profile.username,
-            displayName: profile.fullName,
-            emails: [{ value: profile.email }]
-          };
-          db.users.createUserIfNeeded(user, () => {
-            done(null, user);
-          });
-        }
-      }
-    )
-  );
-
-  app.get("/login/unikname", passport.authenticate("keycloak"));
-  app.get(
-    "/login/unikname/callback",
-    passport.authenticate("keycloak"),
-    function(req, res) {
-      // Successful authentication, redirect home.
-      res.redirect("/");
-    }
-  );
-}
-// #######  #### ########   ######     ########     ###     ######   ######  ##      ##  #######  ########  ########
-// ##     ##  ##  ##     ## ##    ##    ##     ##   ## ##   ##    ## ##    ## ##  ##  ## ##     ## ##     ## ##     ##
-// ##     ##  ##  ##     ## ##          ##     ##  ##   ##  ##       ##       ##  ##  ## ##     ## ##     ## ##     ##
-// ##     ##  ##  ##     ## ##          ########  ##     ##  ######   ######  ##  ##  ## ##     ## ########  ##     ##
-// ##     ##  ##  ##     ## ##          ##        #########       ##       ## ##  ##  ## ##     ## ##   ##   ##     ##
-// ##     ##  ##  ##     ## ##    ##    ##        ##     ## ##    ## ##    ## ##  ##  ## ##     ## ##    ##  ##     ##
-//  #######  #### ########   ######     ##        ##     ##  ######   ######   ###  ###   #######  ##     ## ########
-
-if (isAuthModeEnabled("CAS_SIMPLE")) {
-  (async function addOIDCStrategy() {
-    let casIssuer = await OIDC.Issuer.discover(
-      process.env.CAS_SIMPLE_DISCOVERY_URI
-    ); // => Promise
-
-    //console.log(casIssuer.issuer, casIssuer.metadata);
-
-    const client = new casIssuer.Client({
-      client_id: process.env.CAS_SIMPLE_CLIENT_ID,
-      client_secret: process.env.CAS_SIMPLE_CLIENT_SECRET,
-      redirect_uris: [`${process.env.APP_URL}/login/unikname-cas/cb`],
-      response_types: ["code"]
-    });
-
-    const params = {
-      scope: "openid"
-    };
-
-    passport.use(
-      "oidc",
-      new OIDC.Strategy(
-        { client: client, params: params },
-        (tokenset, userinfo, done) => {
-          // console.log('tokenset', tokenset);
-          // console.log('access_token', tokenset.access_token);
-          // console.log('id_token', tokenset.id_token);
-          // console.log('claims', tokenset.claims);
-          console.log("userinfo", userinfo);
-          if (userinfo) {
-            user = {
-              id: userinfo.id,
-              username: userinfo.sub,
-              displayName: ""
-            };
-            db.users.createUserIfNeeded(user, () => {
-              done(null, user);
-            });
-          }
-        }
-      )
-    );
-  })();
-
-  app.get("/login/unikname-cas", passport.authenticate("oidc"));
-
-  // authentication callback
-  app.get("/login/unikname-cas/cb", passport.authenticate("oidc"), function(
-    //{ successRedirect: '/', failureRedirect: '/login' }));
-    req,
-    res
-  ) {
-    res.redirect("/");
-  });
-}
-
-// #######  #### ########   ######     ########  ######## ##       ########  ######      ###    ######## ######## ########
-// ##     ##  ##  ##     ## ##    ##    ##     ## ##       ##       ##       ##    ##    ## ##      ##    ##       ##     ##
-// ##     ##  ##  ##     ## ##          ##     ## ##       ##       ##       ##         ##   ##     ##    ##       ##     ##
-// ##     ##  ##  ##     ## ##          ##     ## ######   ##       ######   ##   #### ##     ##    ##    ######   ##     ##
-// ##     ##  ##  ##     ## ##          ##     ## ##       ##       ##       ##    ##  #########    ##    ##       ##     ##
-// ##     ##  ##  ##     ## ##    ##    ##     ## ##       ##       ##       ##    ##  ##     ##    ##    ##       ##     ##
-//  #######  #### ########   ######     ########  ######## ######## ########  ######   ##     ##    ##    ######## ########
-
-if (isAuthModeEnabled("CAS_DELEGATED")) {
-  (async function addOIDCDelegatedStrategy() {
-    let casIssuer = await OIDC.Issuer.discover(
-      process.env.CAS_DELEGATE_DISCOVERY_URI
-    ); // => Promise
-
-    //console.log(casIssuer.issuer, casIssuer.metadata);
-
-    const client = new casIssuer.Client({
-      client_id: process.env.CAS_DELEGATE_CLIENT_ID,
-      client_secret: process.env.CAS_DELEGATE_CLIENT_SECRET,
-      redirect_uris: [`${process.env.APP_URL}/login/unikname-cas-delegate/cb`],
-      response_types: ["code"]
-    });
-
-    const params = {
-      scope: "openid"
-    };
-
-    passport.use(
-      "oidc-delegate",
-      new OIDC.Strategy(
-        { client: client, params: params },
-        (tokenset, userinfo, done) => {
-          console.log("userinfo", userinfo);
-          if (userinfo) {
-            user = {
-              id: userinfo.id,
-              username: userinfo.sub,
-              displayName: ""
-            };
-            db.users.createUserIfNeeded(user, () => {
-              done(null, user);
-            });
-          }
-        }
-      )
-    );
-  })();
-
-  app.get(
-    "/login/unikname-cas-delegate",
-    passport.authenticate("oidc-delegate")
-  );
-
-  // authentication callback
-  app.get(
-    "/login/unikname-cas-delegate/cb",
-    passport.authenticate("oidc-delegate"),
-    function(
-      //{ successRedirect: '/', failureRedirect: '/login' }));
-      req,
-      res
-    ) {
-      res.redirect("/");
-    }
-  );
-}
-
-// #######  #### ########   ######     ##     ##  #######  ########
-// ##     ##  ##  ##     ## ##    ##    ##     ## ##     ## ##
-// ##     ##  ##  ##     ## ##          ##     ##        ## ##
-// ##     ##  ##  ##     ## ##          ##     ##  #######  ######
-// ##     ##  ##  ##     ## ##          ##     ## ##        ##
-// ##     ##  ##  ##     ## ##    ##    ##     ## ##        ##
-//  #######  #### ########   ######      #######  ######### ##
-
-if (isAuthModeEnabled("CAS_U2F")) {
-  (async function addOIDC_U2FStrategy() {
-    let casIssuer = await OIDC.Issuer.discover(
-      process.env.CAS_U2F_DISCOVERY_URI
-    ); // => Promise
-
-    const client = new casIssuer.Client({
-      client_id: process.env.CAS_U2F_CLIENT_ID,
-      client_secret: process.env.CAS_U2F_CLIENT_SECRET,
-      redirect_uris: [`${process.env.APP_URL}/login/unikname-cas-u2f/cb`],
-      response_types: ["code"]
-    });
-
-    const params = {
-      scope: "openid"
-    };
-
-    passport.use(
-      "oidc-u2f",
-      new OIDC.Strategy(
-        { client: client, params: params },
-        (tokenset, userinfo, done) => {
-          console.log("userinfo", userinfo);
-          if (userinfo) {
-            user = {
-              id: userinfo.id,
-              username: userinfo.sub,
-              displayName: ""
-            };
-            db.users.createUserIfNeeded(user, () => {
-              done(null, user);
-            });
-          }
-        }
-      )
-    );
-  })();
-
-  app.get("/login/unikname-cas-u2f", passport.authenticate("oidc-u2f"));
-
-  // authentication callback
-  app.get(
-    "/login/unikname-cas-u2f/cb",
-    passport.authenticate("oidc-u2f"),
-    function(
-      //{ successRedirect: '/', failureRedirect: '/login' }));
-      req,
-      res
-    ) {
-      res.redirect("/");
-    }
-  );
-}
-
-// #######  #### ########   ######     ########  ##      ## ########  ##       ########  ######   ######
-// ##     ##  ##  ##     ## ##    ##    ##     ## ##  ##  ## ##     ## ##       ##       ##    ## ##    ##
-// ##     ##  ##  ##     ## ##          ##     ## ##  ##  ## ##     ## ##       ##       ##       ##
-// ##     ##  ##  ##     ## ##          ########  ##  ##  ## ##     ## ##       ######    ######   ######
-// ##     ##  ##  ##     ## ##          ##        ##  ##  ## ##     ## ##       ##             ##       ##
-// ##     ##  ##  ##     ## ##    ##    ##        ##  ##  ## ##     ## ##       ##       ##    ## ##    ##
-//  #######  #### ########   ######     ##         ###  ###  ########  ######## ########  ######   ######
-
-if (isAuthModeEnabled("CAS_PWDLESS")) {
-  (async function addOIDC_PWDLESSStrategy() {
-    let casIssuer = await OIDC.Issuer.discover(
-      process.env.CAS_PWDLESS_DISCOVERY_URI
-    ); // => Promise
-
-    const client = new casIssuer.Client({
-      client_id: process.env.CAS_PWDLESS_CLIENT_ID,
-      client_secret: process.env.CAS_PWDLESS_CLIENT_SECRET,
-      redirect_uris: [`${process.env.APP_URL}/login/unikname-cas-pwdless/cb`],
-      response_types: ["code"]
-    });
-
-    const params = {
-      scope: "openid"
-    };
-
-    passport.use(
-      "oidc-pwdless",
-      new OIDC.Strategy(
-        { client: client, params: params },
-        (tokenset, userinfo, done) => {
-          console.log("userinfo", userinfo);
-          if (userinfo) {
-            user = {
-              id: userinfo.id,
-              username: userinfo.sub,
-              displayName: ""
-            };
-            db.users.createUserIfNeeded(user, () => {
-              done(null, user);
-            });
-          }
-        }
-      )
-    );
-  })();
-
-  app.get("/login/unikname-cas-pwdless", passport.authenticate("oidc-pwdless"));
-
-  // authentication callback
-  app.get(
-    "/login/unikname-cas-pwdless/cb",
-    passport.authenticate("oidc-pwdless"),
-    function(
-      //{ successRedirect: '/', failureRedirect: '/login' }));
-      req,
-      res
-    ) {
-      res.redirect("/");
-    }
-  );
-}
-
-// #######  #### ########   ######      #######  ########    ###       ########  #######  ######## ########
-// ##     ##  ##  ##     ## ##    ##    ##     ## ##         ## ##         ##    ##     ##    ##    ##     ##
-// ##     ##  ##  ##     ## ##                 ## ##        ##   ##        ##    ##     ##    ##    ##     ##
-// ##     ##  ##  ##     ## ##           #######  ######   ##     ##       ##    ##     ##    ##    ########
-// ##     ##  ##  ##     ## ##          ##        ##       #########       ##    ##     ##    ##    ##
-// ##     ##  ##  ##     ## ##    ##    ##        ##       ##     ##       ##    ##     ##    ##    ##
-//  #######  #### ########   ######     ######### ##       ##     ##       ##     #######     ##    ##
-
-if (isAuthModeEnabled("CAS_GA")) {
-  (async function addOIDC_GAStrategy() {
-    let casIssuer = await OIDC.Issuer.discover(
-      process.env.CAS_GA_DISCOVERY_URI
-    ); // => Promise
-
-    const client = new casIssuer.Client({
-      client_id: process.env.CAS_GA_CLIENT_ID,
-      client_secret: process.env.CAS_GA_CLIENT_SECRET,
-      redirect_uris: [`${process.env.APP_URL}/login/unikname-cas-ga/cb`],
-      response_types: ["code"]
-    });
-
-    const params = {
-      scope: "openid"
-    };
-
-    passport.use(
-      "oidc-ga",
-      new OIDC.Strategy(
-        { client: client, params: params },
-        (tokenset, userinfo, done) => {
-          console.log("userinfo", userinfo);
-          if (userinfo) {
-            user = {
-              id: userinfo.id,
-              username: userinfo.sub,
-              displayName: ""
-            };
-            db.users.createUserIfNeeded(user, () => {
-              done(null, user);
-            });
-          }
-        }
-      )
-    );
-  })();
-
-  app.get("/login/unikname-cas-ga", passport.authenticate("oidc-ga"));
-
-  // authentication callback
-  app.get(
-    "/login/unikname-cas-ga/cb",
-    passport.authenticate("oidc-ga"),
-    function(
-      //{ successRedirect: '/', failureRedirect: '/login' }));
-      req,
-      res
-    ) {
-      res.redirect("/");
-    }
-  );
-}
-
 //  #######  #### ########   ######     ########  ######## ##     ##  #######  ######## ########    ##      ##    ###    ##       ##       ######## ########
 // ##     ##  ##  ##     ## ##    ##    ##     ## ##       ###   ### ##     ##    ##    ##          ##  ##  ##   ## ##   ##       ##       ##          ##
 // ##     ##  ##  ##     ## ##          ##     ## ##       #### #### ##     ##    ##    ##          ##  ##  ##  ##   ##  ##       ##       ##          ##
@@ -613,15 +197,22 @@ if (isAuthModeEnabled("CAS_GA")) {
 //  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##
 
 if (isAuthModeEnabled("CAS_PASSPHRASE")) {
-  let CAS_PASSPHRASE_REDIRECT_URI_CB = process.env
-    .CAS_PASSPHRASE_REDIRECT_URI_CB
-    ? process.env.CAS_PASSPHRASE_REDIRECT_URI_CB
-    : "/login/unikname-cas-passphrase/cb";
+  createPassphraseInstance();
+  createPassphraseInstance('sli');
+}
+
+function createPassphraseInstance(subRoute = '') {
+  let CAS_PASSPHRASE_REDIRECT_URI = `${subRoute ? '/' + subRoute : ''}${casPassphraseRedirectURI}`;
+  let CAS_PASSPHRASE_REDIRECT_URI_CB = `${CAS_PASSPHRASE_REDIRECT_URI}/cb`;
+  let oidcName = `oidc-wallet${subRoute ? '-' + subRoute : ''}`;
+
+  const varEnvSuffix = subRoute ? `_${subRoute.toUpperCase()}` : '';
 
   console.log("Auth server uri:", process.env.CAS_PASSPHRASE_DISCOVERY_URI);
+  console.log("Local redirect URI:", CAS_PASSPHRASE_REDIRECT_URI);
   console.log("Local callback redirect URI:", CAS_PASSPHRASE_REDIRECT_URI_CB);
-  console.log("OIDC client id:", process.env.CAS_PASSPHRASE_CLIENT_ID);
-  console.log("OIDC client pass:", process.env.CAS_PASSPHRASE_CLIENT_SECRET);
+  console.log("OIDC client id:", process.env[`CAS_PASSPHRASE_CLIENT_ID${varEnvSuffix}`]);
+  console.log("OIDC client pass:", process.env[`CAS_PASSPHRASE_CLIENT_SECRET${varEnvSuffix}`]);
 
   (async function addOIDC_PassphraseStrategy() {
     let unAuthIssuer = await OIDC.Issuer.discover(
@@ -635,8 +226,8 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
     );
 
     const client = new unAuthIssuer.Client({
-      client_id: process.env.CAS_PASSPHRASE_CLIENT_ID,
-      client_secret: process.env.CAS_PASSPHRASE_CLIENT_SECRET,
+      client_id: process.env[`CAS_PASSPHRASE_CLIENT_ID${varEnvSuffix}`],
+      client_secret: process.env[`CAS_PASSPHRASE_CLIENT_SECRET${varEnvSuffix}`],
       redirect_uris: [
         `${process.env.APP_URL}${CAS_PASSPHRASE_REDIRECT_URI_CB}`
       ],
@@ -648,7 +239,7 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
     };
 
     passport.use(
-      "oidc-wallet",
+      oidcName,
       new OIDC.Strategy(
         { client: client, params: params },
         (tokenset, userinfo, done) => {
@@ -668,12 +259,12 @@ if (isAuthModeEnabled("CAS_PASSPHRASE")) {
     );
   })();
 
-  app.get(casPassphraseRedirectURI, passport.authenticate("oidc-wallet"));
+  app.get(CAS_PASSPHRASE_REDIRECT_URI, passport.authenticate(oidcName));
 
   // authentication callback
   app.get(
     CAS_PASSPHRASE_REDIRECT_URI_CB,
-    passport.authenticate("oidc-wallet"),
+    passport.authenticate(oidcName),
     function(
       //{ successRedirect: '/', failureRedirect: '/login' }));
       req,

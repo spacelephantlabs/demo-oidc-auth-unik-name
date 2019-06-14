@@ -36,6 +36,7 @@
       <% if (!user) { %>
         <div class="login content">
           <h3>CONNECT</h3>
+          <% if (mode && mode.social) { %>
           <div class="login-link">
             <div class="facebook" href="/login">
               <i class="fab fa-facebook-f"></i>
@@ -52,34 +53,8 @@
               </span>
             </div>
           </div>
-
-          <% if (process.env.LOCAL_PWD_ENABLED === "true" ||
-          process.env.GITHUB_ENABLED === "true" || process.env.KEYCLOAK_ENABLED ===
-          "true" || process.env.CAS_SIMPLE_ENABLED === "true" ||
-          process.env.CAS_PWDLESS_ENABLED === "true" ||
-          process.env.CAS_PASSPHRASE_LOCAL_ENABLED === "true") { %>
-          <h3>1FA</h3>
-          <% } %> <% if (process.env.LOCAL_PWD_ENABLED === "true") { %>
-          <div class="login-link">
-            <a href="/login">local password</a>
-          </div>
-          <% } %> <% if (process.env.GITHUB_ENABLED === "true") { %>
-          <div class="login-link">
-            <a href="/login/github">github</a>
-          </div>
-          <% } %> <% if (process.env.KEYCLOAK_ENABLED === "true") { %>
-          <div class="login-link">
-            <a href="/login/unikname">Unik-Name Keycloak</a>
-          </div>
-          <% } %> <% if (process.env.CAS_SIMPLE_ENABLED === "true") { %>
-          <div class="login-link">
-            <a href="/login/unikname-cas">Unik-Name CAS (LOGIN/MDP)</a>
-          </div>
-          <% } %> <% if (process.env.CAS_PWDLESS_ENABLED === "true") { %>
-          <div class="login-link">
-            <a href="/login/unikname-cas-pwdless">Unik-Name CAS (PASSWORDLESS)</a>
-          </div>
-          <% } %> <% if (process.env.CAS_PASSPHRASE_ENABLED === "true") { %>
+          <% } %>
+          <% if (process.env.CAS_PASSPHRASE_ENABLED === "true") { %>
           <div class="login-link">
             <a class="unik-name" href="<%= casPassphraseRedirectURI %>">
                 <img class="unik-name-logo" src="/images/unik-name.png"/>
@@ -88,43 +63,25 @@
                 </span>
             </a>
           </div>
-          <% } %> <% if (process.env.CAS_U2F_ENABLED === "true" ||
-          process.env.CAS_GA_ENABLED === "true" || process.env.CAS_DELEGATE_ENABLED
-          === "true") { %>
-          <h3>2FA</h3>
-          <% } %> <% if (process.env.CAS_U2F_ENABLED === "true") { %>
-          <div class="login-link">
-            <a href="/login/unikname-cas-u2f">Unik-Name CAS (U2F)</a>
-          </div>
-          <% } %> <% if (process.env.CAS_GA_ENABLED === "true") { %>
-          <div class="login-link">
-            <a href="/login/unikname-cas-ga"
-              >Unik-Name CAS (Google Authenticator)</a
-            >
-          </div>
-          <% } %> <% if (process.env.CAS_DELEGATE_ENABLED === "true") { %>
-          <div class="login-link">
-            <a href="/login/unikname-cas-delegate">Unik-Name CAS MFA Delegation</a>
-          </div>
-        </div>
-        <% } %>
-        <div class="or-container">
-          <span class="trait"></span>
-          <span class="or">
-            OR
-          </span>
-          <span class="trait"></span>
-        </div>
+          <% } %>
+          <% if (mode && mode.emailpwd) { %>
+            <div class="or-container">
+              <span class="trait"></span>
+              <span class="or">
+                OR
+              </span>
+              <span class="trait"></span>
+            </div>
 
-        <div class="inputs">
-          <input type="email" placeholder="EMAIL"/>
-          <input type="password" placeholder="PASSWORD"/>
-        </div>
+            <div class="inputs">
+              <input type="email" placeholder="EMAIL"/>
+              <input type="password" placeholder="PASSWORD"/>
+            </div>
 
-        <div class="login-link">
-            <div class="with-email" href="#">With your email</div>
-        </div>
-
+            <div class="login-link">
+                <div class="with-email" href="#">With your email</div>
+            </div>
+          <% } %>
         <% } else { %>
         <h2>
           Login success
