@@ -30,6 +30,7 @@
     "openid-client": "^2.4.5",
     "passport": "^0.2.2",
     "passport-github": "^1.1.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "path": "^0.12.7"
   }
 }

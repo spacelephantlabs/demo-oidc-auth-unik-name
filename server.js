@@ -3,6 +3,8 @@ const express = require("express");
 const passport = require("passport");
 const db = require("./db");
 const assert = require("assert");
+const path = require('path');
+
 
 const Strategy = require("passport-local").Strategy;
 const OIDC = require("openid-client");
@@ -50,8 +52,9 @@ passport.deserializeUser(function(id, cb) {
 var app = express();
 
 // Configure view engine to render EJS templates.
-app.set("views", __dirname + "/views");
-app.set("view engine", "ejs");
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 app.use(express.static(__dirname + "/public"));
 
 // Use application-level middleware for common functionality, including

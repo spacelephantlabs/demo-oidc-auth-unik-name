@@ -1,55 +1,40 @@
-<link href="/css/style.css" rel="stylesheet" type="text/css" />
-<link
-  href="https://fonts.googleapis.com/css?family=Montserrat:400,700"
-  rel="stylesheet"
-/>
+<%- include partials/dependencies.ejs %>
+<%- include partials/navigation.ejs %>
 
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/solid.css" integrity="sha384-QokYePQSOwpBDuhlHOsX0ymF6R/vLk/UQVz3WHa6wygxI5oGTmDTv8wahFOSspdm" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/fontawesome.css" integrity="sha384-vd1e11sR28tEK9YANUtpIOdjGW14pS87bUBuOIoBILVWLFnS+MCX9T6MMf0VdPGq" crossorigin="anonymous">
-
-<div class="container">
-    <% if (user) { %>
-      <nav class="menu colored">
-    <% } else { %>
-      <nav class="menu">
-    <% } %>
-    <div>
-      <a class="home-link" href="/">
-        <h1>My sample application</h1>
-      </a>
-    </div>
-    <ul>
-      <% if (user) { %>
-      <li><a href="/">Home</a></li>
-      <li><a href="#">About</a></li>
-      <li><a href="#">Contact</a></li>
-      <li><a class="hello" href="/profile"><i class="fas fa-user"></i> <%= user.username %></a></li>
-      <li><a class="logout-link" href="/logout">Logout</a></li>
-      <% } else { %>
-        <li><a href="/login">Login</a></li>
-      <% } %>
-    </ul>
-  </nav>
-  <div class="main-container">
-      <h2>Lorem Ipsum dolor</h2>
-      <p class="description">
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Reiciendis fugiat nobis possimus blanditiis, est nesciunt, libero tempora aliquam aut facere corrupti dolor voluptatibus maiores sapiente nam repellendus vero assumenda doloremque.
+<!-- Content -->
+<div class="container content flex-fill d-flex flex-column">
+  <div class="row">
+    <div class="col-12 col-md-7 col-xl-6">
+      <h2>Store your customized message</h2>
+      <p>
+        This is a demo site that allow you to sign-up and sign-in with your @unik-name.
+        For the demo this site allows you to store a customized message within your Platform101 account.
       </p>
-
-      <div class="table">
-        <div>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Prima zril primis eu sed, mei ei eirmod moderatius adversarium. Pri viderer tamquam ei. Scripta periculis ei eam, te pro movet reformidans. Pri posse graeco definitiones cu, id eam populo quaestio adipiscing, usu quod malorum te. Pri posse graeco definitiones cu, id eam populo quaestio adipiscing, usu quod malorum te. Scripta periculis ei eam, te pro movet reformidans. Offendit eleifend moderatius ex vix, quem odio mazim et qui, purto expetendis cotidieque quo cu, veri persius vituperata ei nec. Vivendum intellegat et qui, ei denique consequuntur vix. Pri posse graeco definitiones cu, id eam populo quaestio adipiscing, usu quod malorum te. Vis labore scripta ne, ut alii mediocritatem his. Eos ex affert fabulas iudicabit, dolore ornatus instructior ex per. Pri posse graeco definitiones cu, id eam populo quaestio adipiscing, usu quod malorum te.
-          </p>
+    </div>
+    <div class="col-12 col-md-5 col-xl-4 offset-xl-2">
+      <div class="card">
+        <div class="card-header">
+          Demo Authentication Mode
         </div>
-        <div class="img-container">
-          <img src="/images/lock.jpg">
+        <div class="card-body">
+          <h5 class="card-title">Every time authentication</h5>
+          <p class="card-text">PIN code is required for sign-up but also for every sign-in.</p>
+          <a href="#">See other mode</a>
         </div>
       </div>
+    </div>
   </div>
-  <footer>
-    <a class="se-link" href="https://www.spacelephant.org" target="_blank"
-      >spacelephant.org</a
-    >
-  </footer>
+  <div class="row lets-go align-items-center justify-content-center">
+    <div class="col-12">
+      <h4 class="text-center">Let's go!</h4>
+      <div class="buttons">
+        <a href="/login" class="btn btn-primary btn-wide">
+          <img src="./images/unikname-connect.png" alt="unik-name connect logo" />
+          Connect
+        </a>
+      </div>
+    </div>
+  </div>
 </div>
+
+<%- include partials/footer.ejs %>

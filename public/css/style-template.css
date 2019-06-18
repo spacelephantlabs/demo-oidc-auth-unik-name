@@ -1,0 +1,131 @@
+html {
+  color: #373A3C;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: Source Sans Pro !important;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.btn {
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+}
+
+.btn.btn-wide {
+  padding: 0.375em 2em;
+}
+
+.btn img {
+  max-height: 20px;
+  margin-right: 0.5rem;
+}
+
+/*
+888b    888                   888
+8888b   888                   888
+88888b  888                   888
+888Y88b 888  8888b.  888  888 88888b.   8888b.  888d888
+888 Y88b888     "88b 888  888 888 "88b     "88b 888P"
+888  Y88888 .d888888 Y88  88P 888  888 .d888888 888
+888   Y8888 888  888  Y8bd8P  888 d88P 888  888 888
+888    Y888 "Y888888   Y88P   88888P"  "Y888888 888
+*/
+nav li.nav-item {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  margin: 0.5rem 1rem;
+}
+
+nav li.nav-item a {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+nav.navbar-dark .navbar-nav .nav-link,
+nav.navbar-dark .navbar-nav .nav-link:focus,
+nav.navbar-dark .navbar-nav .nav-link:hover,
+nav.navbar-dark .navbar-nav .nav-link:visited,
+nav.navbar-dark .navbar-nav .nav-link:active {
+  color: #fff;
+  text-decoration: none;
+}
+
+nav li.nav-item img {
+  max-height: 20px;
+  margin-right: 0.5rem
+}
+
+
+/*
+ .d8888b.                    888                     888
+d88P  Y88b                   888                     888
+888    888                   888                     888
+888         .d88b.  88888b.  888888 .d88b.  88888b.  888888
+888        d88""88b 888 "88b 888   d8P  Y8b 888 "88b 888
+888    888 888  888 888  888 888   88888888 888  888 888
+Y88b  d88P Y88..88P 888  888 Y88b. Y8b.     888  888 Y88b.
+ "Y8888P"   "Y88P"  888  888  "Y888 "Y8888  888  888  "Y888
+*/
+.content {
+  padding-top: 6rem;
+  padding-bottom: 2rem;
+}
+
+.content .lets-go {
+  flex: 1;
+}
+
+.content .lets-go h4 {
+  font-size: 2em;
+  font-weight: 300;
+}
+
+/*
+8888888888                888
+888                       888
+888                       888
+8888888  .d88b.   .d88b.  888888 .d88b.  888d888
+888     d88""88b d88""88b 888   d8P  Y8b 888P"
+888     888  888 888  888 888   88888888 888
+888     Y88..88P Y88..88P Y88b. Y8b.     888
+888      "Y88P"   "Y88P"   "Y888 "Y8888  888
+*/
+footer .test-network-disclaimer {
+  padding: 1rem;
+  color: #373A3C;
+  font-weight: 300;
+  font-size: 1.2rem;
+}
+
+footer ul.links {
+  background-color: #DDDDDD;
+  list-style: none;
+  display: flex;
+  width: 100%;
+  margin: 0px;
+  padding: 1rem;
+  font-weight: normal;
+}
+
+footer ul.links li {
+  margin-right: 1rem;
+}
+
+footer ul.links li a,
+footer ul.links li a:focus,
+footer ul.links li a:hover,
+footer ul.links li a:visited,
+footer ul.links li a:active {
+  color: #000;
+  text-decoration: none;
+}
