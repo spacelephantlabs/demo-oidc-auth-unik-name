@@ -158,6 +158,18 @@ function isAuthModeEnabled(authMode) {
   return enabled;
 }
 
+app.get("/reset", function(req, res) {
+  // Logout
+  req.logout();
+  // Destroy session & Reset cookies
+  req.session.destroy(a => {
+    Object.keys(req.cookies).forEach((cookieName) => {
+      res.clearCookie(cookieName);
+    });
+    res.redirect('/');
+  });
+});
+
 // ##        #######   ######     ###    ##          ########     ###     ######   ######  ##      ##  #######  ########  ########
 // ##       ##     ## ##    ##   ## ##   ##          ##     ##   ## ##   ##    ## ##    ## ##  ##  ## ##     ## ##     ## ##     ##
 // ##       ##     ## ##        ##   ##  ##          ##     ##  ##   ##  ##       ##       ##  ##  ## ##     ## ##     ## ##     ##
