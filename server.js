@@ -48,6 +48,15 @@ passport.deserializeUser(function(id, cb) {
   });
 });
 
+function getQueryParameters(mode) {
+  let queryParams = "";
+  if (mode && Object.keys(mode).length > 0) {
+    let reducer = (acc, currentValue, index) =>  `${acc}${currentValue}=${mode[currentValue]}${(index === (Object.keys(mode).length - 1)) ? '' : '&'}`;
+    queryParams = Object.keys(mode).reduce(reducer, "?");
+  }
+  return queryParams;
+}
+
 // Create a new Express application.
 var app = express();
 
@@ -126,13 +135,10 @@ app.post(
   }
 );
 
-app.get("/logout", function(req, res) {
+app.get("/signout", function(req, res) {
   let mode = req.session.mode;
   req.logout();
-  // redirect to / reset session.mode, do not reset on logout!
-  res.render("home", {
-    user: undefined
-  });
+  res.redirect('/' + getQueryParameters(mode));
 });
 
 
