@@ -34,3 +34,8 @@ where `myenv` can be:
 - `integ` for "integration" environment
 
 Each environment must be configured in its own `.env.myenv` file (see [.env](.env) or [.env.integ](.env.integ) files).
+
+## 📝 License
+
+Copyright © 2019 [Space Elephant](https://github.com/spacelephant).<br />
+This project is [MIT](LICENSE) licensed.
