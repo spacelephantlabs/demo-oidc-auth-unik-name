@@ -1,55 +1,38 @@
-<link href="/css/style.css" rel="stylesheet" type="text/css" />
-<link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet">
+<%- include partials/dependencies.ejs %>
+<%- include partials/navigation.ejs %>
 
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/solid.css" integrity="sha384-QokYePQSOwpBDuhlHOsX0ymF6R/vLk/UQVz3WHa6wygxI5oGTmDTv8wahFOSspdm" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/fontawesome.css" integrity="sha384-vd1e11sR28tEK9YANUtpIOdjGW14pS87bUBuOIoBILVWLFnS+MCX9T6MMf0VdPGq" crossorigin="anonymous">
-
-<div class="container">
-    <% if (user) { %>
-      <nav class="menu colored">
-    <% } else { %>
-      <nav class="menu">
-    <% } %>
-    <div>
-        <a class="home-link" href="/">
-          <h1>My sample application</h1>
-        </a>
-    </div>
-    <ul>
-        <ul>
-            <% if (user) { %>
-            <li><a href="/">Home</a></li>
-            <li><a href="#">About</a></li>
-            <li><a href="#">Contact</a></li>
-            <li><a class="hello" href="/profile"><i class="fas fa-user"></i> <%= user.username %></a></li>
-            <li><a class="logout-link" href="/logout">Logout</a></li>
-            <% } else { %>
-              <li><a href="/login">Login</a></li>
-            <% } %>
-          </ul>
-    </ul>
-  </nav>
-  <div class="main-container">
-    <h2>User informations</h2>
-    <div class="informations content">
-      <ul>
-        <li>
-          <label>ID</label>: <span class="value"></span><%= user.id %></span>
-        </li>
-        <li>
-            <label>Username</label>: <span class="value"></span><%= user.username %></span>
-        </li>
-        <li>
-            <label>Name</label>: <span class="value"></span><%= user.displayName %></span></li>
-        <% if (user.emails) { %>
-        <li><label>Email</label>: <span class="value"><%= user.emails[0].value %></span></li>
-        <% } %>
-      </ul>
-    </div>
+<!-- Content -->
+<div class="container content flex-fill d-flex flex-column">
+  <div class="row">
+      <div class="col-12 col-md-7 col-xl-6">
+        <h1 class="mb-4">
+          Welcome <%= user.username %>
+        </h1>
+        <h3 class="mb-2">
+          Internal platform101 user's data
+        </h3>
+        <div class="mb-1">
+          <span class="font-weight-bold">accountID: </span>
+          <span class="font-weight-light"><%= user.id %></span>
+        </div>
+        <div class="mb-1">
+          <span class="font-weight-bold">username: </span>
+          <span class="font-weight-light"><%= user.username %></span>
+        </div>
+        <div class="mb-1">
+          <span class="font-weight-bold">sign-up date: </span>
+          <span class="font-weight-light"><%= user.signupDate %></span>
+        </div>
+        <div class="mb-1">
+          <span class="font-weight-bold">last sign-in date: </span>
+          <span class="font-weight-light"><%= user.lastSigninDate %></span>
+        </div>
+        <div>
+          <span class="font-weight-bold">count of sign-in: </span>
+          <span class="font-weight-light"><%= user.count %></span>
+        </div>
+      </div>
   </div>
-  <footer>
-    <a class="se-link" href="https://www.spacelephant.org" target="_blank"
-      >spacelephant.org</a
-    >
-  </footer>
 </div>
+
+<%- include partials/footer.ejs %>

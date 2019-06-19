@@ -135,12 +135,6 @@ app.get("/logout", function(req, res) {
   });
 });
 
-app.get("/welcome", require("connect-ensure-login").ensureLoggedIn(), function(
-  req,
-  res
-) {
-  res.render("welcome", { user: req.user });
-});
 
 app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
   req,
@@ -273,7 +267,7 @@ function createPassphraseInstance(subRoute = '') {
       req,
       res
     ) {
-      res.redirect("/welcome");
+      res.redirect("/profile");
     }
   );
 }
