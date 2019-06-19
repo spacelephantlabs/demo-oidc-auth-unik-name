@@ -6,6 +6,7 @@ body {
   display: flex;
   flex-direction: column;
   font-family: Source Sans Pro !important;
+  height: 100%;
 }
 
 .buttons {
