@@ -36,15 +36,15 @@
         </div>
         <div class="mb-1">
           <span class="font-weight-bold">sign-up date: </span>
-          <span class="font-weight-light"><%= user.signupDate %></span>
+          <span class="font-weight-light"><%= new Date(user.signupDate).toGMTString() %></span>
         </div>
         <div class="mb-1">
           <span class="font-weight-bold">last sign-in date: </span>
-          <span class="font-weight-light"><%= user.lastSigninDate %></span>
+          <span class="font-weight-light"><%= new Date(user.lastSignInDate).toGMTString() %></span>
         </div>
         <div>
           <span class="font-weight-bold">count of sign-in: </span>
-          <span class="font-weight-light"><%= user.count %></span>
+          <span class="font-weight-light"><%= user.signInCount %></span>
         </div>
         <form class="mt-5" action="saveMessage" method="post" id="customMessageForm">
           <div class="form-group">

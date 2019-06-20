@@ -297,7 +297,9 @@ function createPassphraseInstance(subRoute = '') {
       req,
       res
     ) {
-      res.redirect("/profile");
+      db.users.updateSignIn(req.user, () => {
+        res.redirect("/profile");
+      });
     }
   );
 }

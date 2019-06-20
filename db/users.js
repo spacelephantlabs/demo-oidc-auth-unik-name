@@ -43,6 +43,7 @@ exports.findByUsername = function(username, cb) {
 exports.createUserIfNeeded = function(user, cb) {
   process.nextTick(function() {
     if (user && user.id && !records[user.id]) {
+      user.signInCount = 0;
       records[user.id] = user;
     }
     cb(null, user);
@@ -56,4 +57,19 @@ exports.updateUser = (user, cb) => {
     }
     cb();
   });
+};
+
+
+exports.updateSignIn = (user, cb) => {
+  if (user && user.id && records[user.id]) {
+    let signInDate = new Date().getTime();
+    user = records[user.id];
+    if (!user.signupDate) {
+      user.signupDate = signInDate;
+    }
+    user.lastSignInDate = signInDate;
+    user.signInCount++;
+    records[user.id] = user;
+  }
+  cb();
 };
