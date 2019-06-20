@@ -149,6 +149,18 @@ app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
   });
 });
 
+app.post("/saveMessage", require("connect-ensure-login").ensureLoggedIn(), function(req, res) {
+  let customMessage = req.body.customMessage;
+  if (customMessage) {
+    customMessage = customMessage.trim();
+    let user = req.user;
+    user.customMessage = customMessage;
+    db.users.updateUser(user, () => {res.redirect("/profile")});
+  } else {
+    res.send();
+  }
+});
+
 let interface = process.env.SERVER_LISTEN_INTERFACE;
 let port = process.env.PORT ? process.env.PORT : 3003;
 

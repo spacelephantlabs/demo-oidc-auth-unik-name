@@ -1,6 +1,21 @@
 <%- include partials/dependencies.ejs %>
 <%- include partials/navigation.ejs %>
 
+<script type="text/javascript">
+  $(document).ready(function(){
+    function getCustomMessage() {
+      return $("#customMessage").val();
+    }
+
+    var initialCustomMessage = getCustomMessage().trim();
+
+    $('#customMessage').on("keyup", function(){
+      let currentMessage = getCustomMessage().trim();
+      $("#customMessageForm button").prop('disabled', currentMessage === initialCustomMessage);
+    });
+  });
+</script>
+
 <!-- Content -->
 <div class="container content flex-fill d-flex flex-column">
   <div class="row">
@@ -31,6 +46,15 @@
           <span class="font-weight-bold">count of sign-in: </span>
           <span class="font-weight-light"><%= user.count %></span>
         </div>
+        <form class="mt-5" action="saveMessage" method="post" id="customMessageForm">
+          <div class="form-group">
+            <label for="customMessage">
+              Your customized message
+            </label>
+            <textarea name="customMessage" id="customMessage" class="form-control" rows="3"><%= user.customMessage %></textarea>
+          </div>
+          <button class="btn btn-primary btn-wide" disabled type="submit">Save</button>
+        </form>
       </div>
   </div>
 </div>

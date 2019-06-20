@@ -4,7 +4,8 @@ var DEFAULT_RECORDS = {
     username: "jack",
     password: "secret",
     displayName: "Jack",
-    emails: [{ value: "jack@example.com" }]
+    emails: [{ value: "jack@example.com" }],
+    customMessage: "My custom message"
   },
   jill: {
     id: "jill",
@@ -45,5 +46,14 @@ exports.createUserIfNeeded = function(user, cb) {
       records[user.id] = user;
     }
     cb(null, user);
+  });
+};
+
+exports.updateUser = (user, cb) => {
+  process.nextTick(_ => {
+    if (user && user.id && records[user.id]) {
+      records[user.id] = user;
+    }
+    cb();
   });
 };
