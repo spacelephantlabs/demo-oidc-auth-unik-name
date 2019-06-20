@@ -106,11 +106,14 @@ app.get("/", function(req, res) {
   mode = {
     social: (req.query.social === undefined) ? true : (req.query.social === 'true'),
     sli: (req.query.sli === undefined) ? true : (req.query.sli === 'true'),
-    emailpwd: (req.query.emailpwd === undefined) ? false : (req.query.emailpwd === 'true'),
+    emailpwd: (req.query.emailpwd === undefined) ? true : (req.query.emailpwd === 'true'),
   }
+  let redirect = `${(mode.sli) ? '/sli' : ''}${casPassphraseRedirectURI}`
   req.session.mode = mode;
+  req.session.casPassphraseRedirectURI = redirect;
   res.render("home", {
-    user: req.user
+    user: req.user,
+    casPassphraseRedirectURI: redirect
   });
 });
 
@@ -118,22 +121,8 @@ app.get("/login", function(req, res) {
   let redirect = `${(req.session.mode && req.session.mode.sli) ? '/sli' : ''}${casPassphraseRedirectURI}`
   if (req.session.mode && !req.session.mode.social && !req.session.mode.emailpwd) {
     res.redirect(redirect);
-  } else {
-    res.render("login", {
-      user: req.user,
-      casPassphraseRedirectURI: redirect,
-      mode: req.session.mode
-    });
   }
 });
-
-app.post(
-  "/login",
-  passport.authenticate("local", { failureRedirect: "/login" }),
-  function(req, res) {
-    res.redirect("/");
-  }
-);
 
 app.get("/signout", function(req, res) {
   let mode = req.session.mode;
@@ -146,7 +135,10 @@ app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
   req,
   res
 ) {
-  res.render("profile", { user: req.user });
+  res.render("profile", {
+    user: req.user,
+    casPassphraseRedirectURI: req.session.casPassphraseRedirectURI
+  });
 });
 
 let interface = process.env.SERVER_LISTEN_INTERFACE;
