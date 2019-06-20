@@ -9,6 +9,8 @@ const path = require('path');
 const Strategy = require("passport-local").Strategy;
 const OIDC = require("openid-client");
 
+let tenant;
+
 require("custom-env").env(true);
 
 console.log("Configuration mode:", process.env.APP_ENV);
@@ -39,7 +41,7 @@ passport.serializeUser(function(user, cb) {
 });
 
 passport.deserializeUser(function(id, cb) {
-  db.users.findById(id, function(err, user) {
+  db.users.findById(id, getTenantFromRequest(), function(err, user) {
     if (err) {
       return cb(err);
     }
@@ -55,6 +57,14 @@ function getQueryParameters(mode) {
     queryParams = Object.keys(mode).reduce(reducer, "?");
   }
   return queryParams;
+}
+
+function getTenantFromRequest() {
+  return tenant;
+}
+
+function storeTenantFromBaseRequest(req) {
+  tenant = req.headers.host;
 }
 
 // Create a new Express application.
@@ -103,6 +113,7 @@ let casPassphraseRedirectURI = "/login/unikname";
 
 // Define routes.
 app.get("/", function(req, res) {
+  storeTenantFromBaseRequest(req);
   mode = {
     social: (req.query.social === undefined) ? false : (req.query.social === 'true'),
     sli: (req.query.sli === undefined) ? true : (req.query.sli === 'true'),
@@ -155,7 +166,7 @@ app.post("/saveMessage", require("connect-ensure-login").ensureLoggedIn(), funct
     customMessage = customMessage.trim();
     let user = req.user;
     user.customMessage = customMessage;
-    db.users.updateUser(user, () => {res.redirect("/profile")});
+    db.users.updateUser(user, getTenantFromRequest(), () => {res.redirect("/profile")});
   } else {
     res.send();
   }
@@ -199,7 +210,7 @@ if (isAuthModeEnabled("LOCAL_PWD")) {
   // will be set at `req.user` in route handlers after authentication.
   passport.use(
     new Strategy(function(username, password, cb) {
-      db.users.findById(username, function(err, user) {
+      db.users.findById(username, getTenantFromRequest(), function(err, user) {
         if (err) {
           return cb(err);
         }
@@ -277,7 +288,7 @@ function createPassphraseInstance(subRoute = '') {
               username: userinfo.sub,
               displayName: ""
             };
-            db.users.createUserIfNeeded(user, () => {
+            db.users.createUserIfNeeded(user, getTenantFromRequest(), () => {
               done(null, user);
             });
           }
@@ -297,7 +308,7 @@ function createPassphraseInstance(subRoute = '') {
       req,
       res
     ) {
-      db.users.updateSignIn(req.user, () => {
+      db.users.updateSignIn(req.user, getTenantFromRequest(), () => {
         res.redirect("/profile");
       });
     }
