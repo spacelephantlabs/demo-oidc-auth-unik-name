@@ -1,9 +1,4 @@
 <script type="text/javascript">
-  // $('#loginModal').on('show.bs.modal', function (e) {
-  //   // do something on modal close
-  //   console.log('modal close');
-  // })
-
   $('#loginModal .modal-body .login-link').on('click', _ => {
     $('#loginModal').modal('hide');
   });
@@ -14,7 +9,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header bg-primary">
-          <h5 class="modal-title" id="loginModalTitle">Connect to your platform101 account</h5>
+          <h5 class="modal-title" id="loginModalTitle">Connect to your <%= platform.name %> account</h5>
         </div>
         <div class="modal-body">
           <!-- login with unik-name -->

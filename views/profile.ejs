@@ -1,33 +1,36 @@
-<%- include partials/dependencies.ejs %>
-<%- include partials/navigation.ejs %>
+<head>
+  <%- include partials/dependencies.ejs %>
+</head>
+<body class="<%= platform.mode %>">
+  <%- include partials/navigation.ejs %>
 
-<script type="text/javascript">
-  $(document).ready(function(){
-    function getCustomMessage() {
-      return $("#customMessage").val();
-    }
+  <script type="text/javascript">
+    $(document).ready(function(){
+      function getCustomMessage() {
+        return $("#customMessage").val();
+      }
 
-    var initialCustomMessage = getCustomMessage().trim();
+      var initialCustomMessage = getCustomMessage().trim();
 
-    $('#customMessage').on("keyup", function(){
-      let currentMessage = getCustomMessage().trim();
-      $("#customMessageForm button").prop('disabled', currentMessage === initialCustomMessage);
+      $('#customMessage').on("keyup", function(){
+        let currentMessage = getCustomMessage().trim();
+        $("#customMessageForm button").prop('disabled', currentMessage === initialCustomMessage);
+      });
     });
-  });
-</script>
+  </script>
 
 <!-- Content -->
 <div class="container content flex-fill d-flex flex-column">
   <div class="row">
-      <div class="col-12 col-md-7 col-xl-6">
-        <h1 class="mb-4">
-          Welcome <%= user.username %>
-        </h1>
-        <h3 class="mb-2">
-          Internal platform101 user's data
-        </h3>
-        <div class="mb-1">
-          <span class="font-weight-bold">accountID: </span>
+    <div class="col-12 col-md-7 col-xl-6">
+      <h1 class="mb-4">
+        Welcome <%= user.username %>
+      </h1>
+      <h3 class="mb-2">
+        Internal <%= platform.name %> user's data
+      </h3>
+      <div class="mb-1">
+        <span class="font-weight-bold">accountID: </span>
           <span class="font-weight-light"><%= user.id %></span>
         </div>
         <div class="mb-1">
@@ -56,8 +59,9 @@
           <button class="btn btn-primary btn-wide" disabled type="submit">Save</button>
         </form>
       </div>
+    </div>
   </div>
-</div>
 
-<%- include partials/footer.ejs %>
-<%- include partials/loginModal.ejs %>
+    <%- include partials/footer.ejs %>
+    <%- include partials/loginModal.ejs %>
+</body>

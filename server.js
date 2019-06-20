@@ -10,6 +10,7 @@ const Strategy = require("passport-local").Strategy;
 const OIDC = require("openid-client");
 
 let tenant;
+let platformMode;
 
 require("custom-env").env(true);
 
@@ -63,6 +64,20 @@ function getTenantFromRequest() {
   return tenant;
 }
 
+function storePlatform(hostName) {
+  console.log("HOST TO STORE : ", hostName);
+  console.log("P102_HOST_URL : ", process.env.P102_HOST_URL);
+  platformMode = (hostName === process.env.P102_HOST_URL) ? 'p102' : 'p101';
+  platformName = (hostName === process.env.P102_HOST_URL) ? 'Platform102' : 'Platform101';
+}
+
+function getPlatform() {
+  return {
+    mode: platformMode,
+    name: platformName
+  };
+}
+
 function storeTenantFromBaseRequest(req) {
   tenant = req.headers.host;
 }
@@ -114,6 +129,7 @@ let casPassphraseRedirectURI = "/login/unikname";
 // Define routes.
 app.get("/", function(req, res) {
   storeTenantFromBaseRequest(req);
+  storePlatform(req.headers.host);
   mode = {
     social: (req.query.social === undefined) ? false : (req.query.social === 'true'),
     sli: (req.query.sli === undefined) ? true : (req.query.sli === 'true'),
@@ -124,7 +140,8 @@ app.get("/", function(req, res) {
   req.session.casPassphraseRedirectURI = redirect;
   res.render("home", {
     user: req.user,
-    casPassphraseRedirectURI: redirect
+    casPassphraseRedirectURI: redirect,
+    platform: getPlatform()
   });
 });
 
@@ -156,7 +173,8 @@ app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
 ) {
   res.render("profile", {
     user: req.user,
-    casPassphraseRedirectURI: req.session.casPassphraseRedirectURI
+    casPassphraseRedirectURI: req.session.casPassphraseRedirectURI,
+    platform: getPlatform()
   });
 });
 

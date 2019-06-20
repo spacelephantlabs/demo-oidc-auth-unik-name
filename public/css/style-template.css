@@ -11,6 +11,15 @@ body {
   height: 100%;
 }
 
+body.p102 .bg-primary {
+  background-color: #61C126 !important;
+}
+
+body.p102 .btn-primary {
+  background-color: #61C126 !important;
+  border-color: #61C126 !important;
+}
+
 .buttons {
   display: flex;
   flex-direction: column;
