@@ -104,9 +104,9 @@ let casPassphraseRedirectURI = "/login/unikname";
 // Define routes.
 app.get("/", function(req, res) {
   mode = {
-    social: (req.query.social === undefined) ? true : (req.query.social === 'true'),
+    social: (req.query.social === undefined) ? false : (req.query.social === 'true'),
     sli: (req.query.sli === undefined) ? true : (req.query.sli === 'true'),
-    emailpwd: (req.query.emailpwd === undefined) ? true : (req.query.emailpwd === 'true'),
+    emailpwd: (req.query.emailpwd === undefined) ? false : (req.query.emailpwd === 'true'),
   }
   let redirect = `${(mode.sli) ? '/sli' : ''}${casPassphraseRedirectURI}`
   req.session.mode = mode;
@@ -122,6 +122,14 @@ app.get("/login", function(req, res) {
   if (req.session.mode && !req.session.mode.social && !req.session.mode.emailpwd) {
     res.redirect(redirect);
   }
+});
+
+app.get("/connectSocialAuthent", function(req, res) {
+  res.redirect('/?social=true&emailpwd=true&sli=false');
+});
+
+app.get("/connectEmail", function(req, res) {
+  res.redirect('/?emailpwd=true&sli=false');
 });
 
 app.get("/signout", function(req, res) {
