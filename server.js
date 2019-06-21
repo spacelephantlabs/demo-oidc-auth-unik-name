@@ -11,6 +11,7 @@ const OIDC = require("openid-client");
 
 let tenant;
 let platformMode;
+let platformName;
 
 require("custom-env").env(true);
 
@@ -51,24 +52,20 @@ passport.deserializeUser(function(id, cb) {
   });
 });
 
-function getQueryParameters(mode) {
-  let queryParams = "";
-  if (mode && Object.keys(mode).length > 0) {
-    let reducer = (acc, currentValue, index) =>  `${acc}${currentValue}=${mode[currentValue]}${(index === (Object.keys(mode).length - 1)) ? '' : '&'}`;
-    queryParams = Object.keys(mode).reduce(reducer, "?");
-  }
-  return queryParams;
-}
-
 function getTenantFromRequest() {
   return tenant;
 }
 
 function storePlatform(hostName) {
-  console.log("HOST TO STORE : ", hostName);
-  console.log("P102_HOST_URL : ", process.env.P102_HOST_URL);
-  platformMode = (hostName === process.env.P102_HOST_URL) ? 'p102' : 'p101';
-  platformName = (hostName === process.env.P102_HOST_URL) ? 'Platform102' : 'Platform101';
+  if (!platformMode) {
+    console.log("P102_HOST_URL : ", process.env.P102_HOST_URL);
+    platformMode = (hostName === process.env.P102_HOST_URL) ? 'p102' : 'p101';
+  }
+
+  if (!platformName) {
+    console.log("HOST TO STORE : ", hostName);
+    platformName = (hostName === process.env.P102_HOST_URL) ? 'Platform102' : 'Platform101';
+  }
 }
 
 function getPlatform() {
@@ -79,7 +76,18 @@ function getPlatform() {
 }
 
 function storeTenantFromBaseRequest(req) {
-  tenant = req.headers.host;
+  if (!tenant) {
+    tenant = req.headers.host;
+  }
+}
+
+function getAppUrlPort() {
+  return process.env.DEV_PORT ? `:${process.env.DEV_PORT}` : '';
+}
+
+function logout(req) {
+  req.logout();
+  req.user = undefined;
 }
 
 // Create a new Express application.
@@ -96,8 +104,12 @@ app.use(express.static(__dirname + "/public"));
 app.use(require("morgan")("combined"));
 app.use(require("cookie-parser")());
 app.use(require("body-parser").urlencoded({ extended: true }));
+
+let expressSession = require("express-session");
+let store = new expressSession.MemoryStore();
 app.use(
-  require("express-session")({
+  expressSession({
+    store,
     secret: "keyboard cat",
     resave: false,
     saveUninitialized: false
@@ -131,13 +143,14 @@ app.get("/", function(req, res) {
   storeTenantFromBaseRequest(req);
   storePlatform(req.headers.host);
   mode = {
-    social: (req.query.social === undefined) ? false : (req.query.social === 'true'),
-    sli: (req.query.sli === undefined) ? true : (req.query.sli === 'true'),
-    emailpwd: (req.query.emailpwd === undefined) ? false : (req.query.emailpwd === 'true'),
+    social: (req.query.social === undefined) ? (req.session.mode && req.session.social ? req.session.social : false) : (req.query.social === 'true'),
+    sli: (req.query.sli === undefined) ? (req.session.mode && req.session.sli ? req.session.sli : true) : (req.query.sli === 'true'),
+    emailpwd: (req.query.emailpwd === undefined) ? (req.session.mode && req.session.emailpwd ? req.session.emailpwd : false) : (req.query.emailpwd === 'true'),
   }
   let redirect = `${(mode.sli) ? '/sli' : ''}${casPassphraseRedirectURI}`
   req.session.mode = mode;
   req.session.casPassphraseRedirectURI = redirect;
+
   res.render("home", {
     user: req.user,
     casPassphraseRedirectURI: redirect,
@@ -161,9 +174,8 @@ app.get("/connectEmail", function(req, res) {
 });
 
 app.get("/signout", function(req, res) {
-  let mode = req.session.mode;
-  req.logout();
-  res.redirect('/' + getQueryParameters(mode));
+  logout(req);
+  res.redirect('/');
 });
 
 app.post("/saveMessage", require("connect-ensure-login").ensureLoggedIn(), function(req, res) {
@@ -179,7 +191,9 @@ app.post("/saveMessage", require("connect-ensure-login").ensureLoggedIn(), funct
 });
 
 let interface = process.env.SERVER_LISTEN_INTERFACE;
-let port = process.env.PORT ? process.env.PORT : 3003;
+let port = process.env.DEV_PORT
+  ? process.env.DEV_PORT
+  : (process.env.PORT ? process.env.PORT : 3003);
 
 function isAuthModeEnabled(authMode) {
   let enabled = process.env[authMode + "_ENABLED"] === "true";
@@ -188,15 +202,21 @@ function isAuthModeEnabled(authMode) {
 }
 
 app.get("/reset", function(req, res) {
+  let mode = req.session.mode;
+  req.session.cookie.httpOnly = false;
+
   // Logout
-  req.logout();
-  // Destroy session & Reset cookies
-  req.session.destroy(a => {
-    Object.keys(req.cookies).forEach((cookieName) => {
-      res.clearCookie(cookieName);
-    });
-    res.redirect('/');
+  logout(req);
+
+  // Reset cookies
+  Object.keys(req.cookies).forEach((cookieName) => {
+    //res.clearCookie(cookieName, { path: '/', httpOnly: false });
+    res.cookie(cookieName, '', { path: '/', httpOnly: false, expires: new Date("Thu, 25 Dec 2000 12:00:00 UTC") });
+    store.destroy(req.cookies[cookieName]);
   });
+
+  req.session.mode = mode;
+  res.redirect('/');
 });
 
 // ##        #######   ######     ###    ##          ########     ###     ######   ######  ##      ##  #######  ########  ########
@@ -273,7 +293,7 @@ function createPassphraseInstance(subRoute = '') {
       client_id: process.env[`CAS_PASSPHRASE_CLIENT_ID${varEnvSuffix}`],
       client_secret: process.env[`CAS_PASSPHRASE_CLIENT_SECRET${varEnvSuffix}`],
       redirect_uris: [
-        `${process.env.APP_URL}${process.env.PORT ? `:${process.env.PORT}` : ''}${CAS_PASSPHRASE_REDIRECT_URI_CB}`
+        `${process.env.APP_URL}${getAppUrlPort()}${CAS_PASSPHRASE_REDIRECT_URI_CB}`
       ],
       response_types: ["code"]
     });

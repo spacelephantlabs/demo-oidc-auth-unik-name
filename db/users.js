@@ -30,18 +30,6 @@ exports.findById = function(id, tenant, cb) {
   });
 };
 
-exports.findByUsername = function(username, theTenant, cb) {
-  process.nextTick(function() {
-    for (var i = 0, len = records.length; i < len; i++) {
-      var tenant = records[i];
-      if (tenant[username] === username) {
-        return cb(null, tenant[username]);
-      }
-    }
-    return cb(null, null);
-  });
-};
-
 exports.createUserIfNeeded = function(user, tenant, cb) {
   process.nextTick(function() {
     if (user && user.id && !(records[tenant] && records[tenant][user.id])) {
