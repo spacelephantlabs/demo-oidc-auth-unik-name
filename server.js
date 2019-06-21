@@ -166,25 +166,13 @@ app.get("/signout", function(req, res) {
   res.redirect('/' + getQueryParameters(mode));
 });
 
-
-app.get("/profile", require("connect-ensure-login").ensureLoggedIn(), function(
-  req,
-  res
-) {
-  res.render("profile", {
-    user: req.user,
-    casPassphraseRedirectURI: req.session.casPassphraseRedirectURI,
-    platform: getPlatform()
-  });
-});
-
 app.post("/saveMessage", require("connect-ensure-login").ensureLoggedIn(), function(req, res) {
   let customMessage = req.body.customMessage;
   if (customMessage) {
     customMessage = customMessage.trim();
     let user = req.user;
     user.customMessage = customMessage;
-    db.users.updateUser(user, getTenantFromRequest(), () => {res.redirect("/profile")});
+    db.users.updateUser(user, getTenantFromRequest(), () => {res.redirect("/")});
   } else {
     res.send();
   }
@@ -327,7 +315,7 @@ function createPassphraseInstance(subRoute = '') {
       res
     ) {
       db.users.updateSignIn(req.user, getTenantFromRequest(), () => {
-        res.redirect("/profile");
+        res.redirect("/");
       });
     }
   );

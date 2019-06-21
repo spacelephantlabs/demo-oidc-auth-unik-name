@@ -1,0 +1,55 @@
+<div class="row">
+  <div class="col-12 col-md-7 col-xl-6">
+    <h2>Store your customized message</h2>
+    <p>
+      This is a demo site that allow you to sign-up and sign-in with your @unik-name.
+      For the demo this site allows you to store a customized message within your <%= platform.name %> account.
+    </p>
+  </div>
+  <div class="col-12 col-md-5 col-xl-4 offset-xl-2">
+
+    <% if (platform.mode === 'p101') { %>
+    <div class="card">
+      <div class="card-header">
+        Demo Authentication Mode
+      </div>
+      <div class="card-body">
+        <h5 class="card-title">Every time authentication</h5>
+        <p class="card-text">PIN code is required for sign-up but also for every sign-in.</p>
+        <a href="#">See other mode</a>
+      </div>
+    </div>
+    <% } else { %>
+    <div class="card">
+      <div class="card-header">
+        Demo Authentication Mode
+      </div>
+      <div class="card-body">
+        <h5 class="card-title">Automatic sign-in</h5>
+        <p class="card-text">PIN code is required for sign-up. Sign-in is automatic when user has already been authenticated with his @unik-name on any website.</p>
+        <a href="#">See other mode</a>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>
+<% if (!user) { %>
+  <div class="row lets-go align-items-center justify-content-center">
+    <div class="col-12">
+      <h4 class="text-center">Let's go!</h4>
+      <div class="buttons">
+        <% if (mode && (mode.social || mode.emailpwd)) { %>
+          <button type="button" data-toggle="modal" data-target="#loginModal" class="btn btn-primary btn-wide">
+            <img src="./images/unikname-connect.png" alt="unik-name connect logo" />
+            Connect
+          </button>
+          <% } else { %>
+            <a class="connect-button btn btn-primary btn-wide" href="<%= casPassphraseRedirectURI %>">
+      <img src="./images/unikname-connect.png" alt="unik-name connect logo" />
+      Connect
+    </a>
+    <% } %>
+  </div>
+</div>
+</div>
+<% } %>
