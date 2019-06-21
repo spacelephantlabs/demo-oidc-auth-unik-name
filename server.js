@@ -285,7 +285,7 @@ function createPassphraseInstance(subRoute = '') {
       client_id: process.env[`CAS_PASSPHRASE_CLIENT_ID${varEnvSuffix}`],
       client_secret: process.env[`CAS_PASSPHRASE_CLIENT_SECRET${varEnvSuffix}`],
       redirect_uris: [
-        `${process.env.APP_URL}${CAS_PASSPHRASE_REDIRECT_URI_CB}`
+        `${process.env.APP_URL}${process.env.PORT ? `:${process.env.PORT}` : ''}${CAS_PASSPHRASE_REDIRECT_URI_CB}`
       ],
       response_types: ["code"]
     });

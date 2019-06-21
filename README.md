@@ -24,6 +24,23 @@ The application is configured to look for the Unik-Name Authentication server on
 Open a web browser and navigate to [http://localhost:3003/](http://127.0.0.1:3003/)
 to see the example in action.
 
+### Platform choice
+To launch application in Platform101 or Platform102 mode, please change `PORT` and `P10*_HOST_URL` environment variables values in `.env` file
+
+Example: (for Platform101 mode)
+```
+PORT=3003
+P101_HOST_URL=localhost:3003
+P102_HOST_URL=localhost:3004
+```
+
+Example: (for Platform102 mode)
+```
+PORT=3004
+P101_HOST_URL=localhost:3003
+P102_HOST_URL=localhost:3004
+```
+
 ## In other environments
 
 ```bash
