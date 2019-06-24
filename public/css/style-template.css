@@ -24,6 +24,11 @@ body.p102 .btn-primary {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
+}
+
+.buttons > * {
+  margin-bottom: 0.5rem;
 }
 
 .btn {
@@ -34,6 +39,7 @@ body.p102 .btn-primary {
 
 .btn.btn-wide {
   padding: 0.375em 2em;
+  min-width: 250px;
 }
 
 .btn img {
@@ -140,25 +146,25 @@ Y88b  d88P Y88..88P 888  888 Y88b. Y8b.     888  888 Y88b.
 }
 
 #loginModal .modal-body .login-link .unik-name {
-  background: linear-gradient(183.59deg, #FFA407 13.59%, #FB7C20 86.4%);
+  background: linear-gradient(183.59deg, #FFA407 13.59%, #FB7C20 86.4%) !important;
 }
 
 #loginModal .modal-body .login-link .facebook {
-  background-color: #3b5898;
+  background-color: #3b5898 !important;
 }
 
 #loginModal .modal-body .login-link .google {
-  background-color: #ea4336;
+  background-color: #ea4336 !important;
 }
 
 
 #loginModal .modal-body .login-link .twitter {
-  background-color: #44BDE3;
+  background-color: #44BDE3 !important;
 }
 
 #loginModal .modal-body .login-link .email {
-  background-color: #fff;
-  border: 2px solid #000;
+  background-color: #fff !important;
+  border: 2px solid #000  !important;
   color: #000;
 }
 

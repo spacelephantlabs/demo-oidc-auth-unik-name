@@ -148,13 +148,15 @@ app.get("/", function(req, res) {
     emailpwd: (req.query.emailpwd === undefined) ? (req.session.mode && req.session.emailpwd ? req.session.emailpwd : false) : (req.query.emailpwd === 'true'),
   }
   let redirect = `${(mode.sli) ? '/sli' : ''}${casPassphraseRedirectURI}`
+  let deepLink = req.query.deepLink;
   req.session.mode = mode;
   req.session.casPassphraseRedirectURI = redirect;
 
   res.render("home", {
     user: req.user,
     casPassphraseRedirectURI: redirect,
-    platform: getPlatform()
+    platform: getPlatform(),
+    deepLink
   });
 });
 
@@ -164,13 +166,12 @@ app.get("/login", function(req, res) {
     res.redirect(redirect);
   }
 });
-
 app.get("/connectSocialAuthent", function(req, res) {
-  res.redirect('/?social=true&emailpwd=true&sli=false');
+  res.redirect('/?social=true&emailpwd=true&sli=false&deepLink=true');
 });
 
 app.get("/connectEmail", function(req, res) {
-  res.redirect('/?emailpwd=true&sli=false');
+  res.redirect('/?emailpwd=true&sli=false&deepLink=true');
 });
 
 app.get("/signout", function(req, res) {

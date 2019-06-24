@@ -3,6 +3,12 @@
     $('#loginModal').modal('hide');
   });
 
+  <% if(deepLink)  { %>
+    $(document).ready(() => {
+      $('#loginModal').modal('show');
+    })
+  <% } %>
+
 </script>
 
 <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalTitle" aria-hidden="true">
