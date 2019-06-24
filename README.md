@@ -6,8 +6,6 @@ To install this example on your computer, clone the repository and install
 dependencies.
 
 ```bash
-$ git clone git@github.com:spacelephantlabs/demo-oidc-auth-unik-name.git
-$ cd demo-oidc-auth-unik-name
 $ npm install
 ```
 
@@ -25,16 +23,18 @@ Open a web browser and navigate to [http://localhost:3003/](http://127.0.0.1:300
 to see the example in action.
 
 ### Platform choice
-To launch application in Platform101 or Platform102 mode, please change `DEV_PORT` and `P10*_HOST_URL` environment variables values in `.env` file
 
-Example: (for Platform101 mode)
+In order to simulate the multiple `10x` websites, (eg: `www.platform101.net`, `www.platform101.net` ...), you have to choose the launching "mode" of the application.
+Please change `DEV_PORT` and `P10*_HOST_URL` environment variables values in `.env` file
+
+Default mode, for Platform101 mode:
 ```
 DEV_PORT=3003
 P101_HOST_URL=localhost:3003
 P102_HOST_URL=localhost:3004
 ```
 
-Example: (for Platform102 mode)
+To configure for Platform102 mode:
 ```
 DEV_PORT=3004
 P101_HOST_URL=localhost:3003
