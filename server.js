@@ -5,13 +5,7 @@ const db = require("./db");
 const assert = require("assert");
 const path = require('path');
 
-
-const Strategy = require("passport-local").Strategy;
 const OIDC = require("openid-client");
-
-let tenant;
-let platformMode;
-let platformName;
 
 require("custom-env").env(true);
 
@@ -38,12 +32,12 @@ console.log(
 // typical implementation of this is as simple as supplying the user ID when
 // serializing, and querying the user record by ID from the database when
 // deserializing.
-passport.serializeUser(function(user, cb) {
+passport.serializeUser(function(req, user, cb) {
   cb(null, user.id);
 });
 
-passport.deserializeUser(function(id, cb) {
-  db.users.findById(id, getTenantFromRequest(), function(err, user) {
+passport.deserializeUser(function(req, id, cb) {
+  db.users.findById(id, getTenantFromRequest(req), function(err, user) {
     if (err) {
       return cb(err);
     }
@@ -52,33 +46,27 @@ passport.deserializeUser(function(id, cb) {
   });
 });
 
-function getTenantFromRequest() {
-  return tenant;
+function getTenantFromRequest(request) {
+  return isDevMode() ? request.headers.host : request.hostname;
 }
 
-function storePlatform(hostName) {
-  if (!platformMode) {
-    console.log("P102_HOST_URL : ", process.env.P102_HOST_URL);
-    platformMode = (hostName === process.env.P102_HOST_URL) ? 'p102' : 'p101';
-  }
-
-  if (!platformName) {
-    console.log("HOST TO STORE : ", hostName);
-    platformName = (hostName === process.env.P102_HOST_URL) ? 'Platform102' : 'Platform101';
-  }
+function isDevMode() {
+  return process.env.APP_ENV === 'dev';
 }
 
-function getPlatform() {
+function getPlatform(request) {
+  let p102ModeActivated =  isDevMode() ? (request.headers.host === process.env.P102_HOST_URL) : (request.hostname === process.env.P102_HOST_URL);
+
+  console.log("P102_HOST_URL : ", process.env.P102_HOST_URL);
+  let platformMode = p102ModeActivated ? 'p102' : 'p101';
+
+  console.log("HOST TO STORE : ", isDevMode() ? request.headers.host : request.hostname);
+  let platformName = p102ModeActivated ? 'Platform102' : 'Platform101';
+
   return {
     mode: platformMode,
     name: platformName
   };
-}
-
-function storeTenantFromBaseRequest(req) {
-  if (!tenant) {
-    tenant = req.headers.host;
-  }
 }
 
 function getAppUrlPort() {
@@ -104,6 +92,8 @@ app.use(express.static(__dirname + "/public"));
 app.use(require("morgan")("combined"));
 app.use(require("cookie-parser")());
 app.use(require("body-parser").urlencoded({ extended: true }));
+
+app.set('trust proxy', isDevMode());
 
 let expressSession = require("express-session");
 let store = new expressSession.MemoryStore();
@@ -140,8 +130,6 @@ let casPassphraseRedirectURI = "/login/unikname";
 
 // Define routes.
 app.get("/", function(req, res) {
-  storeTenantFromBaseRequest(req);
-  storePlatform(req.headers.host);
   mode = {
     social: (req.query.social === undefined) ? (req.session.mode && req.session.social ? req.session.social : false) : (req.query.social === 'true'),
     sli: (req.query.sli === undefined) ? (req.session.mode && req.session.sli ? req.session.sli : true) : (req.query.sli === 'true'),
@@ -151,11 +139,12 @@ app.get("/", function(req, res) {
   let deepLink = req.query.deepLink;
   req.session.mode = mode;
   req.session.casPassphraseRedirectURI = redirect;
+  req.session.platform = getPlatform(req);
 
   res.render("home", {
     user: req.user,
     casPassphraseRedirectURI: redirect,
-    platform: getPlatform(),
+    platform: req.session.platform,
     deepLink
   });
 });
@@ -185,7 +174,7 @@ app.post("/saveMessage", require("connect-ensure-login").ensureLoggedIn(), funct
     customMessage = customMessage.trim();
     let user = req.user;
     user.customMessage = customMessage;
-    db.users.updateUser(user, getTenantFromRequest(), () => {res.redirect("/")});
+    db.users.updateUser(user, getTenantFromRequest(req), () => {res.redirect("/")});
   } else {
     res.send();
   }
@@ -219,39 +208,6 @@ app.get("/reset", function(req, res) {
   req.session.mode = mode;
   res.redirect('/');
 });
-
-// ##        #######   ######     ###    ##          ########     ###     ######   ######  ##      ##  #######  ########  ########
-// ##       ##     ## ##    ##   ## ##   ##          ##     ##   ## ##   ##    ## ##    ## ##  ##  ## ##     ## ##     ## ##     ##
-// ##       ##     ## ##        ##   ##  ##          ##     ##  ##   ##  ##       ##       ##  ##  ## ##     ## ##     ## ##     ##
-// ##       ##     ## ##       ##     ## ##          ########  ##     ##  ######   ######  ##  ##  ## ##     ## ########  ##     ##
-// ##       ##     ## ##       ######### ##          ##        #########       ##       ## ##  ##  ## ##     ## ##   ##   ##     ##
-// ##       ##     ## ##    ## ##     ## ##          ##        ##     ## ##    ## ##    ## ##  ##  ## ##     ## ##    ##  ##     ##
-// ########  #######   ######  ##     ## ########    ##        ##     ##  ######   ######   ###  ###   #######  ##     ## ########
-
-if (isAuthModeEnabled("LOCAL_PWD")) {
-  // Configure the local strategy for use by Passport.
-  //
-  // The local strategy require a `verify` function which receives the credentials
-  // (`username` and `password`) submitted by the user.  The function must verify
-  // that the password is correct and then invoke `cb` with a user object, which
-  // will be set at `req.user` in route handlers after authentication.
-  passport.use(
-    new Strategy(function(username, password, cb) {
-      db.users.findById(username, getTenantFromRequest(), function(err, user) {
-        if (err) {
-          return cb(err);
-        }
-        if (!user) {
-          return cb(null, false);
-        }
-        if (user.password != password) {
-          return cb(null, false);
-        }
-        return cb(null, user);
-      });
-    })
-  );
-}
 
 //  #######  #### ########   ######     ########  ######## ##     ##  #######  ######## ########    ##      ##    ###    ##       ##       ######## ########
 // ##     ##  ##  ##     ## ##    ##    ##     ## ##       ###   ### ##     ##    ##    ##          ##  ##  ##   ## ##   ##       ##       ##          ##
@@ -306,8 +262,8 @@ function createPassphraseInstance(subRoute = '') {
     passport.use(
       oidcName,
       new OIDC.Strategy(
-        { client: client, params: params },
-        (tokenset, userinfo, done) => {
+        { client: client, params: params, passReqToCallback: true },
+        (req, tokenset, userinfo, done) => {
           console.log("userinfo", userinfo);
           if (userinfo) {
             user = {
@@ -315,7 +271,7 @@ function createPassphraseInstance(subRoute = '') {
               username: userinfo.sub,
               displayName: ""
             };
-            db.users.createUserIfNeeded(user, getTenantFromRequest(), () => {
+            db.users.createUserIfNeeded(user, getTenantFromRequest(req), () => {
               done(null, user);
             });
           }
@@ -330,12 +286,8 @@ function createPassphraseInstance(subRoute = '') {
   app.get(
     CAS_PASSPHRASE_REDIRECT_URI_CB,
     passport.authenticate(oidcName),
-    function(
-      //{ successRedirect: '/', failureRedirect: '/login' }));
-      req,
-      res
-    ) {
-      db.users.updateSignIn(req.user, getTenantFromRequest(), () => {
+    function(req, res) {
+      db.users.updateSignIn(req.user, getTenantFromRequest(req), () => {
         res.redirect("/");
       });
     }
