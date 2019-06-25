@@ -16,18 +16,24 @@
 <div class="row">
   <div class="col-12 col-md-7 col-xl-6">
     <h1 class="mb-4">
-      Welcome <%= user.username %>
+      Welcome anonym user
     </h1>
     <h3 class="mb-2">
       Internal <%= platform.name %> user's data
     </h3>
     <div class="mb-1">
       <span class="font-weight-bold">accountID: </span>
-        <span class="font-weight-light"><%= user.id %></span>
+        <span class="font-weight-light">
+          <% if (user.id) { %>
+          <a target="_blank" href="<%= explorerUrl %>/uniks/<%= user.id %>" class="text-decoration-none text-dark" title="See my UNIK token in explorer">
+            <%= user.id.substring(0,4) + "..." + user.id.substring((user.id.length - 5), (user.id.length -1)) %>
+          </a>
+          <% } %>
+        </span>
       </div>
       <div class="mb-1">
         <span class="font-weight-bold">username: </span>
-        <span class="font-weight-light"><%= user.username %></span>
+        <span class="font-weight-light">anonym user</span>
       </div>
       <div class="mb-1">
         <span class="font-weight-bold">sign-up date: </span>

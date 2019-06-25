@@ -102,7 +102,8 @@ function renderHome(req, res, renderMode) {
     user: req.user,
     casPassphraseRedirectURI: redirect,
     platform: req.session.platform,
-    mode
+    mode,
+    explorerUrl: process.env.UNS_EXPLORER_URL
   });
 }
 
