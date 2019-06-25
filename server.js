@@ -84,9 +84,9 @@ function logout(req) {
 function renderHome(req, res, renderMode) {
 
   let mode = {
-    social: (renderMode && renderMode.social) ? renderMode.social : ((req.query.social === undefined) ? (req.session.mode && req.session.social ? req.session.social : false) : (req.query.social === 'true')),
-    sli: (renderMode && renderMode.sli) ? renderMode.sli : ((req.query.sli === undefined) ? (req.session.mode && req.session.sli ? req.session.sli : true) : (req.query.sli === 'true')),
-    emailpwd: (renderMode && renderMode.emailpwd) ? renderMode.emailpwd : ((req.query.emailpwd === undefined) ? (req.session.mode && req.session.emailpwd ? req.session.emailpwd : false) : (req.query.emailpwd === 'true')),
+    social: (renderMode && renderMode.social) ? renderMode.social : ((req.session.mode && req.session.social ? req.session.social : false)),
+    sli: (renderMode && renderMode.sli) ? renderMode.sli : ((req.session.mode && req.session.sli ? req.session.sli : true)),
+    emailpwd: (renderMode && renderMode.emailpwd) ? renderMode.emailpwd : ((req.session.mode && req.session.emailpwd ? req.session.emailpwd : false)),
     deepLink: renderMode && renderMode.deepLink
   }
   req.session.mode = mode;
