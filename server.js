@@ -81,6 +81,31 @@ function logout(req) {
   req.user = undefined;
 }
 
+function renderHome(req, res, renderMode) {
+
+  let mode = {
+    social: (renderMode && renderMode.social) ? renderMode.social : ((req.query.social === undefined) ? (req.session.mode && req.session.social ? req.session.social : false) : (req.query.social === 'true')),
+    sli: (renderMode && renderMode.sli) ? renderMode.sli : ((req.query.sli === undefined) ? (req.session.mode && req.session.sli ? req.session.sli : true) : (req.query.sli === 'true')),
+    emailpwd: (renderMode && renderMode.emailpwd) ? renderMode.emailpwd : ((req.query.emailpwd === undefined) ? (req.session.mode && req.session.emailpwd ? req.session.emailpwd : false) : (req.query.emailpwd === 'true')),
+    deepLink: renderMode && renderMode.deepLink
+  }
+  let redirect = `${(mode.sli) ? '/sli' : ''}${casPassphraseRedirectURI}`
+  req.session.mode = mode;
+  req.session.casPassphraseRedirectURI = redirect;
+
+  if (!req.session.tenant) {
+    req.session.tenant = getTenantFromRequest(req);
+    req.session.platform = getPlatform(req.session.tenant);
+  }
+
+  res.render("home", {
+    user: req.user,
+    casPassphraseRedirectURI: redirect,
+    platform: req.session.platform,
+    mode
+  });
+}
+
 // Create a new Express application.
 var app = express();
 
@@ -133,27 +158,7 @@ let casPassphraseRedirectURI = "/login/unikname";
 
 // Define routes.
 app.get("/", function(req, res) {
-  mode = {
-    social: (req.query.social === undefined) ? (req.session.mode && req.session.social ? req.session.social : false) : (req.query.social === 'true'),
-    sli: (req.query.sli === undefined) ? (req.session.mode && req.session.sli ? req.session.sli : true) : (req.query.sli === 'true'),
-    emailpwd: (req.query.emailpwd === undefined) ? (req.session.mode && req.session.emailpwd ? req.session.emailpwd : false) : (req.query.emailpwd === 'true'),
-  }
-  let redirect = `${(mode.sli) ? '/sli' : ''}${casPassphraseRedirectURI}`
-  let deepLink = req.query.deepLink;
-  req.session.mode = mode;
-  req.session.casPassphraseRedirectURI = redirect;
-
-  if (!req.session.tenant) {
-    req.session.tenant = getTenantFromRequest(req);
-    req.session.platform = getPlatform(req.session.tenant);
-  }
-
-  res.render("home", {
-    user: req.user,
-    casPassphraseRedirectURI: redirect,
-    platform: req.session.platform,
-    deepLink
-  });
+  renderHome(req, res);
 });
 
 app.get("/login", function(req, res) {
@@ -163,11 +168,25 @@ app.get("/login", function(req, res) {
   }
 });
 app.get("/connectSocialAuthent", function(req, res) {
-  res.redirect('/?social=true&emailpwd=true&sli=false&deepLink=true');
+  let mode = {
+    social: true,
+    emailpwd: true,
+    sli: false,
+    deepLink: true
+  }
+  renderHome(req, res, mode);
+  //res.redirect('/?social=true&emailpwd=true&sli=false&deepLink=true');
 });
 
 app.get("/connectEmail", function(req, res) {
-  res.redirect('/?emailpwd=true&sli=false&deepLink=true');
+  let mode = {
+    social: false,
+    emailpwd: true,
+    sli: false,
+    deepLink: true
+  }
+  renderHome(req, res, mode);
+  //res.redirect('/?emailpwd=true&sli=false&deepLink=true');
 });
 
 app.get("/signout", function(req, res) {

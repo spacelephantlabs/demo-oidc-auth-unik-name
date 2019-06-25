@@ -3,7 +3,7 @@
     $('#loginModal').modal('hide');
   });
 
-  <% if(deepLink)  { %>
+  <% if (mode && mode.deepLink) { %>
     $(document).ready(() => {
       $('#loginModal').modal('show');
     })
@@ -12,82 +12,82 @@
 </script>
 
 <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header bg-primary">
-          <h5 class="modal-title" id="loginModalTitle">Connect to your <%= platform.name %> account</h5>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h5 class="modal-title" id="loginModalTitle">Connect to your <%= platform.name %> account</h5>
+      </div>
+      <div class="modal-body">
+        <!-- login with unik-name -->
+        <div class="login-link mb-3">
+          <a class="unik-name btn btn-primary btn-lg btn-block border-0 shadow-none" href="<%= casPassphraseRedirectURI %>">
+            <span class="login-link-logo-container">
+              <img class="login-link-logo" src="/images/unik-name.png"/>
+            </span>
+            <span>
+              Connect with @unik-name</a>
+            </span>
+          </a>
         </div>
-        <div class="modal-body">
-          <!-- login with unik-name -->
-          <div class="login-link mb-3">
-            <a class="unik-name btn btn-primary btn-lg btn-block border-0 shadow-none" href="<%= casPassphraseRedirectURI %>">
-              <span class="login-link-logo-container">
-                <img class="login-link-logo" src="/images/unik-name.png"/>
-              </span>
-              <span>
-                Connect with @unik-name</a>
-              </span>
-            </a>
-          </div>
 
-          <!-- Social login -->
-          <% if (mode && mode.social) { %>
-          <div class="login-link mb-3">
-            <a class="facebook btn btn-primary btn-lg btn-block border-0 shadow-none" href="/">
-              <span class="login-link-logo-container">
-                <i class="fab fa-facebook-f"></i>
-              </span>
-              <span>
-                Connect with Facebook
-              </span>
-            </a>
-          </div>
+        <!-- Social login -->
+        <% if (mode && mode.social) { %>
+        <div class="login-link mb-3">
+          <a class="facebook btn btn-primary btn-lg btn-block border-0 shadow-none" href="/">
+            <span class="login-link-logo-container">
+              <i class="fab fa-facebook-f"></i>
+            </span>
+            <span>
+              Connect with Facebook
+            </span>
+          </a>
+        </div>
 
-          <div class="login-link mb-3">
-            <a class="google btn btn-primary btn-lg btn-block border-0 shadow-none" href="/">
-              <span class="login-link-logo-container">
-                <i class="fab fa-google"></i>
-              </span>
-              <span>
-                Connect with Google
-              </span>
-            </a>
-          </div>
+        <div class="login-link mb-3">
+          <a class="google btn btn-primary btn-lg btn-block border-0 shadow-none" href="/">
+            <span class="login-link-logo-container">
+              <i class="fab fa-google"></i>
+            </span>
+            <span>
+              Connect with Google
+            </span>
+          </a>
+        </div>
 
-          <div class="login-link mb-3">
-            <a class="twitter btn btn-primary btn-lg btn-block border-0 shadow-none" href="/">
-              <span class="login-link-logo-container">
-                <i class="fab fa-twitter"></i>
-              </span>
-              <span>
-                Connect with Twitter
-              </span>
-            </a>
-          </div>
-          <% } %>
+        <div class="login-link mb-3">
+          <a class="twitter btn btn-primary btn-lg btn-block border-0 shadow-none" href="/">
+            <span class="login-link-logo-container">
+              <i class="fab fa-twitter"></i>
+            </span>
+            <span>
+              Connect with Twitter
+            </span>
+          </a>
+        </div>
+        <% } %>
 
-          <% if (mode && mode.emailpwd) { %>
-          <!-- Login with email -->
-          <div class="text-center or my-4">
-            OR
-          </div>
-          <form>
-            <div class="form-group">
-              <input class="mb-3 form-control" type="email" id="email" placeholder="Enter your email">
-              <div class="login-link mb-3">
-                <a class="email btn btn-primary btn-lg btn-block shadow-none" href="/">
-                  <span class="login-link-logo-container">
-                    <i class="login-link-logo fas fa-envelope"></i>
-                  </span>
-                  <span>
-                    Connect with your eMail
-                  </span>
-                </a>
-              </div>
+        <% if (mode && mode.emailpwd) { %>
+        <!-- Login with email -->
+        <div class="text-center or my-4">
+          OR
+        </div>
+        <form>
+          <div class="form-group">
+            <input class="mb-3 form-control" type="email" id="email" placeholder="Enter your email">
+            <div class="login-link mb-3">
+              <a class="email btn btn-primary btn-lg btn-block shadow-none" href="/">
+                <span class="login-link-logo-container">
+                  <i class="login-link-logo fas fa-envelope"></i>
+                </span>
+                <span>
+                  Connect with your eMail
+                </span>
+              </a>
             </div>
-          </form>
-          <% } %>
-        </div>
+          </div>
+        </form>
+        <% } %>
       </div>
     </div>
   </div>
+</div>
