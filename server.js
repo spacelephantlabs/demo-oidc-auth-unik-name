@@ -296,7 +296,7 @@ function createPassphraseInstance(hostname, clientId, clientSecret, strategyName
       client_id: clientId,
       client_secret: clientSecret,
       redirect_uris: [
-        `http${isDevMode ? '' : 's'}://${hostname}${CAS_PASSPHRASE_REDIRECT_URI_CB}`
+        `http${isDevMode() ? '' : 's'}://${hostname}${CAS_PASSPHRASE_REDIRECT_URI_CB}`
       ],
       response_types: ["code"]
     });
