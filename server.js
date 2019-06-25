@@ -7,6 +7,12 @@ const path = require('path');
 
 const OIDC = require("openid-client");
 
+const P101_MODE = "p101";
+const P102_MODE = "p102";
+
+const P101_NAME = "Platform101";
+const P102_NAME = "Platform102";
+
 require("custom-env").env(true);
 
 console.log("Configuration mode:", process.env.APP_ENV);
@@ -46,34 +52,28 @@ passport.deserializeUser(function(req, id, cb) {
   });
 });
 
-function getTenantFromRequest(request) {
-  return isDevMode() ? request.headers.host : request.hostname;
-}
-
 function isDevMode() {
   return process.env.APP_ENV === 'dev';
 }
 
-function getPlatform(tenant) {
+function loadPlatformAndTenant(request) {
+  let tenant = isDevMode() ? request.headers.host : request.hostname;
+  request.session.tenant = tenant;
 
   console.log("GET PLATFORM FOR TENANT: ", tenant);
 
   let p102ModeActivated =  tenant === process.env.P102_HOST_URL;
 
   console.log("P102_HOST_URL : ", process.env.P102_HOST_URL);
-  let platformMode = p102ModeActivated ? 'p102' : 'p101';
+  let platformMode = p102ModeActivated ? P102_MODE : P101_MODE;
 
   console.log("HOST TO STORE : ", tenant);
-  let platformName = p102ModeActivated ? 'Platform102' : 'Platform101';
+  let platformName = p102ModeActivated ? P102_NAME : P101_NAME;
 
-  return {
-    mode: platformMode,
-    name: platformName
-  };
-}
-
-function getAppUrlPort() {
-  return process.env.DEV_PORT ? `:${process.env.DEV_PORT}` : '';
+  request.session.platform = {
+      mode: platformMode,
+      name: platformName
+    }
 }
 
 function logout(req) {
@@ -89,18 +89,16 @@ function renderHome(req, res, renderMode) {
     emailpwd: (renderMode && renderMode.emailpwd) ? renderMode.emailpwd : ((req.query.emailpwd === undefined) ? (req.session.mode && req.session.emailpwd ? req.session.emailpwd : false) : (req.query.emailpwd === 'true')),
     deepLink: renderMode && renderMode.deepLink
   }
-  let redirect = `${(mode.sli) ? '/sli' : ''}${casPassphraseRedirectURI}`
   req.session.mode = mode;
-  req.session.casPassphraseRedirectURI = redirect;
+  req.session.casPassphraseRedirectURI = CAS_PASSPHRASE_REDIRECT_URI;
 
   if (!req.session.tenant) {
-    req.session.tenant = getTenantFromRequest(req);
-    req.session.platform = getPlatform(req.session.tenant);
+    loadPlatformAndTenant(req);
   }
 
   res.render("home", {
     user: req.user,
-    casPassphraseRedirectURI: redirect,
+    casPassphraseRedirectURI: CAS_PASSPHRASE_REDIRECT_URI,
     platform: req.session.platform,
     mode,
     explorerUrl: process.env.UNS_EXPLORER_URL
@@ -155,7 +153,8 @@ if (process.env.APP_ENFORCE_TLS) {
 app.use(passport.initialize());
 app.use(passport.session());
 
-let casPassphraseRedirectURI = "/login/unikname";
+let CAS_PASSPHRASE_REDIRECT_URI = "/login/unikname";
+let CAS_PASSPHRASE_REDIRECT_URI_CB = `${CAS_PASSPHRASE_REDIRECT_URI}/cb`;
 
 // Define routes.
 app.get("/", function(req, res) {
@@ -163,7 +162,7 @@ app.get("/", function(req, res) {
 });
 
 app.get("/login", function(req, res) {
-  let redirect = `${(req.session.mode && req.session.mode.sli) ? '/sli' : ''}${casPassphraseRedirectURI}`
+  let redirect = `${(req.session.mode && req.session.mode.sli) ? '/sli' : ''}${CAS_PASSPHRASE_REDIRECT_URI}`
   if (req.session.mode && !req.session.mode.social && !req.session.mode.emailpwd) {
     res.redirect(redirect);
   }
@@ -244,23 +243,43 @@ app.get("/reset", function(req, res) {
 // ##     ##  ##  ##     ## ##    ##    ##    ##  ##       ##     ## ##     ##    ##    ##          ##  ##  ## ##     ## ##       ##       ##          ##
 //  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##
 
-if (isAuthModeEnabled("CAS_PASSPHRASE")) {
-  createPassphraseInstance();
-  createPassphraseInstance('sli');
+// Custom strategies
+const P101_STRATEGY_NAME = "p101Strategy";
+createPassphraseInstance(process.env.P101_HOST_URL, process.env.CAS_PASSPHRASE_CLIENT_ID_P101, process.env.CAS_PASSPHRASE_CLIENT_SECRET_P101, P101_STRATEGY_NAME);
+
+const P102_STRATEGY_NAME = "p102Strategy";
+createPassphraseInstance(process.env.P102_HOST_URL, process.env.CAS_PASSPHRASE_CLIENT_ID_P102, process.env.CAS_PASSPHRASE_CLIENT_SECRET_P102, P102_STRATEGY_NAME);
+
+
+function doAuthenticate(req, res, next) {
+  if (!req.session.tenant) {
+    loadPlatformAndTenant(req);
+  }
+  let strategy2Use = (req.session.platform && req.session.platform.mode === P102_MODE) ? P102_STRATEGY_NAME : P101_STRATEGY_NAME;
+  passport.authenticate(strategy2Use)(req, res, next);
 }
 
-function createPassphraseInstance(subRoute = '') {
-  let CAS_PASSPHRASE_REDIRECT_URI = `${subRoute ? '/' + subRoute : ''}${casPassphraseRedirectURI}`;
-  let CAS_PASSPHRASE_REDIRECT_URI_CB = `${CAS_PASSPHRASE_REDIRECT_URI}/cb`;
-  let oidcName = `oidc-wallet${subRoute ? '-' + subRoute : ''}`;
 
-  const varEnvSuffix = subRoute ? `_${subRoute.toUpperCase()}` : '';
+// Common routes
+app.get(CAS_PASSPHRASE_REDIRECT_URI, doAuthenticate);
+
+// authentication callback
+app.get(CAS_PASSPHRASE_REDIRECT_URI_CB, doAuthenticate,
+  function(req, res) {
+    db.users.updateSignIn(req.user, req.session.tenant, () => {
+      res.redirect("/");
+    });
+  }
+);
+
+
+function createPassphraseInstance(hostname, clientId, clientSecret, strategyName) {
 
   console.log("Auth server uri:", process.env.CAS_PASSPHRASE_DISCOVERY_URI);
   console.log("Local redirect URI:", CAS_PASSPHRASE_REDIRECT_URI);
   console.log("Local callback redirect URI:", CAS_PASSPHRASE_REDIRECT_URI_CB);
-  console.log("OIDC client id:", process.env[`CAS_PASSPHRASE_CLIENT_ID${varEnvSuffix}`]);
-  console.log("OIDC client pass:", process.env[`CAS_PASSPHRASE_CLIENT_SECRET${varEnvSuffix}`]);
+  console.log("OIDC client id:", clientId);
+  console.log("OIDC client pass:", clientSecret);
 
   (async function addOIDC_PassphraseStrategy() {
     let unAuthIssuer = await OIDC.Issuer.discover(
@@ -274,10 +293,10 @@ function createPassphraseInstance(subRoute = '') {
     );
 
     const client = new unAuthIssuer.Client({
-      client_id: process.env[`CAS_PASSPHRASE_CLIENT_ID${varEnvSuffix}`],
-      client_secret: process.env[`CAS_PASSPHRASE_CLIENT_SECRET${varEnvSuffix}`],
+      client_id: clientId,
+      client_secret: clientSecret,
       redirect_uris: [
-        `${process.env.APP_URL}${getAppUrlPort()}${CAS_PASSPHRASE_REDIRECT_URI_CB}`
+        `http${isDevMode ? '' : 's'}://${hostname}${CAS_PASSPHRASE_REDIRECT_URI_CB}`
       ],
       response_types: ["code"]
     });
@@ -287,7 +306,7 @@ function createPassphraseInstance(subRoute = '') {
     };
 
     passport.use(
-      oidcName,
+      strategyName,
       new OIDC.Strategy(
         { client: client, params: params, passReqToCallback: true },
         (req, tokenset, userinfo, done) => {
@@ -306,19 +325,6 @@ function createPassphraseInstance(subRoute = '') {
       )
     );
   })();
-
-  app.get(CAS_PASSPHRASE_REDIRECT_URI, passport.authenticate(oidcName));
-
-  // authentication callback
-  app.get(
-    CAS_PASSPHRASE_REDIRECT_URI_CB,
-    passport.authenticate(oidcName),
-    function(req, res) {
-      db.users.updateSignIn(req.user, req.session.tenant, () => {
-        res.redirect("/");
-      });
-    }
-  );
 }
 
 // ######  ######## ########  ##     ## ######## ########
