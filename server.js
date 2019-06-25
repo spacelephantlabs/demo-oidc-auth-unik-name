@@ -37,7 +37,7 @@ passport.serializeUser(function(req, user, cb) {
 });
 
 passport.deserializeUser(function(req, id, cb) {
-  db.users.findById(id, getTenantFromRequest(req), function(err, user) {
+  db.users.findById(id, req.session.tenant, function(err, user) {
     if (err) {
       return cb(err);
     }
@@ -54,13 +54,16 @@ function isDevMode() {
   return process.env.APP_ENV === 'dev';
 }
 
-function getPlatform(request) {
-  let p102ModeActivated =  isDevMode() ? (request.headers.host === process.env.P102_HOST_URL) : (request.hostname === process.env.P102_HOST_URL);
+function getPlatform(tenant) {
+
+  console.log("GET PLATFORM FOR TENANT: ", tenant);
+
+  let p102ModeActivated =  tenant === process.env.P102_HOST_URL;
 
   console.log("P102_HOST_URL : ", process.env.P102_HOST_URL);
   let platformMode = p102ModeActivated ? 'p102' : 'p101';
 
-  console.log("HOST TO STORE : ", isDevMode() ? request.headers.host : request.hostname);
+  console.log("HOST TO STORE : ", tenant);
   let platformName = p102ModeActivated ? 'Platform102' : 'Platform101';
 
   return {
@@ -93,7 +96,7 @@ app.use(require("morgan")("combined"));
 app.use(require("cookie-parser")());
 app.use(require("body-parser").urlencoded({ extended: true }));
 
-app.set('trust proxy', isDevMode());
+app.set('trust proxy', !isDevMode());
 
 let expressSession = require("express-session");
 let store = new expressSession.MemoryStore();
@@ -139,7 +142,11 @@ app.get("/", function(req, res) {
   let deepLink = req.query.deepLink;
   req.session.mode = mode;
   req.session.casPassphraseRedirectURI = redirect;
-  req.session.platform = getPlatform(req);
+
+  if (!req.session.tenant) {
+    req.session.tenant = getTenantFromRequest(req);
+    req.session.platform = getPlatform(req.session.tenant);
+  }
 
   res.render("home", {
     user: req.user,
@@ -174,7 +181,7 @@ app.post("/saveMessage", require("connect-ensure-login").ensureLoggedIn(), funct
     customMessage = customMessage.trim();
     let user = req.user;
     user.customMessage = customMessage;
-    db.users.updateUser(user, getTenantFromRequest(req), () => {res.redirect("/")});
+    db.users.updateUser(user, req.session.tenant, () => {res.redirect("/")});
   } else {
     res.send();
   }
@@ -271,7 +278,7 @@ function createPassphraseInstance(subRoute = '') {
               username: userinfo.sub,
               displayName: ""
             };
-            db.users.createUserIfNeeded(user, getTenantFromRequest(req), () => {
+            db.users.createUserIfNeeded(user, req.session.tenant, () => {
               done(null, user);
             });
           }
@@ -287,7 +294,7 @@ function createPassphraseInstance(subRoute = '') {
     CAS_PASSPHRASE_REDIRECT_URI_CB,
     passport.authenticate(oidcName),
     function(req, res) {
-      db.users.updateSignIn(req.user, getTenantFromRequest(req), () => {
+      db.users.updateSignIn(req.user, req.session.tenant, () => {
         res.redirect("/");
       });
     }
