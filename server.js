@@ -302,7 +302,7 @@ function createPassphraseInstance(hostname, clientId, clientSecret, strategyName
     });
 
     const params = {
-      scope: "openid email"
+      scope: "openid"
     };
 
     passport.use(
