@@ -246,6 +246,15 @@ app.get('/reset', function(req, res) {
 // ##     ##  ##  ##     ## ##    ##    ##    ##  ##       ##     ## ##     ##    ##    ##          ##  ##  ## ##     ## ##       ##       ##          ##
 //  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##
 
+const params101 = {
+  scope: 'openid',
+  prompt: 'login',
+};
+
+const params102 = {
+  scope: 'openid',
+};
+
 // Custom strategies
 const P101_STRATEGY_NAME = 'p101Strategy';
 createPassphraseInstance(
@@ -253,6 +262,7 @@ createPassphraseInstance(
   process.env.CAS_PASSPHRASE_CLIENT_ID_P101,
   process.env.CAS_PASSPHRASE_CLIENT_SECRET_P101,
   P101_STRATEGY_NAME,
+  params101,
 );
 
 const P102_STRATEGY_NAME = 'p102Strategy';
@@ -261,6 +271,7 @@ createPassphraseInstance(
   process.env.CAS_PASSPHRASE_CLIENT_ID_P102,
   process.env.CAS_PASSPHRASE_CLIENT_SECRET_P102,
   P102_STRATEGY_NAME,
+  params102,
 );
 
 function doAuthenticate(req, res, next) {
@@ -282,7 +293,7 @@ app.get(CAS_PASSPHRASE_REDIRECT_URI_CB, doAuthenticate, function(req, res) {
   });
 });
 
-function createPassphraseInstance(hostname, clientId, clientSecret, strategyName) {
+function createPassphraseInstance(hostname, clientId, clientSecret, strategyName, strategyParams) {
   console.log('Auth server uri:', process.env.CAS_PASSPHRASE_DISCOVERY_URI);
   console.log('Local redirect URI:', CAS_PASSPHRASE_REDIRECT_URI);
   console.log('Local callback redirect URI:', CAS_PASSPHRASE_REDIRECT_URI_CB);
@@ -301,14 +312,10 @@ function createPassphraseInstance(hostname, clientId, clientSecret, strategyName
       response_types: ['code'],
     });
 
-    const params = {
-      scope: 'openid',
-    };
-
     passport.use(
       strategyName,
       new OIDC.Strategy(
-        { client: client, params: params, passReqToCallback: true },
+        { client: client, params: strategyParams, passReqToCallback: true },
         (req, tokenset, userinfo, done) => {
           console.log('userinfo', userinfo);
           if (userinfo) {
