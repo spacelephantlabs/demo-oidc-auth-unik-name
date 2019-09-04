@@ -19,8 +19,9 @@ $ node server.js
 
 The application is configured to look for the Unik-Name Authentication server on `http://localhost:8080/`.
 
-Open a web browser and navigate to [http://localhost:3003/](http://127.0.0.1:3003/)
-to see the example in action.
+Open a web browser and navigate to http://localhost:3003/ to see the example in action.
+
+**NOTE**: as routing between tenants is done with domain names, you mustn't load the application in your browser with use IP addresses.
 
 ### Platform choice
 
