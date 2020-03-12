@@ -28,7 +28,7 @@
     "express-sslify": "^1.2.0",
     "morgan": "^1.6.1",
     "openid-client": "^2.4.5",
-    "passport": "^0.2.2",
+    "passport": "^0.4.1",
     "passport-github": "^1.1.0",
     "passport-local": "^1.0.0",
     "path": "^0.12.7"
