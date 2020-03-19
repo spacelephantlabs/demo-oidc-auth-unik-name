@@ -25,9 +25,7 @@
       <span class="font-weight-bold">accountID: </span>
         <span class="font-weight-light">
           <% if (user.id) { %>
-          <a target="_blank" href="<%= explorerUrl %>/uniks/<%= user.id %>" class="text-decoration-none text-dark" title="See my UNIK token in explorer">
-            <%= user.id.substring(0,4) + "..." + user.id.substring((user.id.length - 5), (user.id.length -1)) %>
-          </a>
+            <%= user.id %>
           <% } %>
         </span>
       </div>
