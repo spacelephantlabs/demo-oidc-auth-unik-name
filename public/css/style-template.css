@@ -11,13 +11,13 @@ body {
   height: 100%;
 }
 
-body.p102 .bg-primary {
-  background-color: #61C126 !important;
+body.p103 .bg-primary {
+  background-color: #ff5733 !important;
 }
 
-body.p102 .btn-primary {
-  background-color: #61C126 !important;
-  border-color: #61C126 !important;
+body.p103 .btn-primary {
+  background-color: #ff5733 !important;
+  border-color: #ff5733 !important;
 }
 
 .buttons {
@@ -111,85 +111,6 @@ Y88b  d88P Y88..88P 888  888 Y88b. Y8b.     888  888 Y88b.
   font-size: 2em;
   font-weight: 300;
 }
-
-
-/*
-888b     d888               888          888 888                       d8b
-8888b   d8888               888          888 888                       Y8P
-88888b.d88888               888          888 888
-888Y88888P888  .d88b.   .d88888  8888b.  888 888      .d88b.   .d88b.  888 88888b.
-888 Y888P 888 d88""88b d88" 888     "88b 888 888     d88""88b d88P"88b 888 888 "88b
-888  Y8P  888 888  888 888  888 .d888888 888 888     888  888 888  888 888 888  888
-888   "   888 Y88..88P Y88b 888 888  888 888 888     Y88..88P Y88b 888 888 888  888
-888       888  "Y88P"   "Y88888 "Y888888 888 88888888 "Y88P"   "Y88888 888 888  888
-                                                                   888
-                                                              Y8b d88P
-                                                               "Y88P"
-*/
-
-#loginModal .modal-header {
-  color: #fff;
-  border-radius: 0px;
-}
-
-#loginMOdal .modal-body {
-  padding: 2rem 2rem 1rem 2rem;
-}
-
-#loginModal .modal-body .login-link .login-link-logo-container {
-  width: 10%;
-  text-align: left;
-}
-
-#loginModal .modal-body .login-link .login-link-logo {
-  max-height: 20px;
-}
-
-#loginModal .modal-body .login-link .unik-name {
-  background: linear-gradient(183.59deg, #FFA407 13.59%, #FB7C20 86.4%) !important;
-}
-
-#loginModal .modal-body .login-link .facebook {
-  background-color: #3b5898 !important;
-}
-
-#loginModal .modal-body .login-link .google {
-  background-color: #ea4336 !important;
-}
-
-
-#loginModal .modal-body .login-link .twitter {
-  background-color: #44BDE3 !important;
-}
-
-#loginModal .modal-body .login-link .email {
-  background-color: #fff !important;
-  border: 2px solid #000  !important;
-  color: #000;
-}
-
-#loginModal .modal-body .or {
-  position: relative;
-}
-
-#loginModal .modal-body .or:after,
-#loginModal .modal-body .or:before {
-  content: '';
-  height: 2px;
-  width: 20%;
-  background-color: #000;
-  position: absolute;
-  top: calc(50% - 1px);
-}
-
-#loginModal .modal-body .or:before {
-  left: 25%;
-}
-
-#loginModal .modal-body .or:after {
-  right: 25%;
-}
-
 
 /*
 8888888888                888

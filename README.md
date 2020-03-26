@@ -1,4 +1,4 @@
-This the source code of Unik-Name OpenID Connect demo application.
+This is the source code of Unik-Name OpenID Connect demo application integrating auth0 with Unikname Connect application
 
 # Instructions
 
@@ -22,25 +22,6 @@ The application is configured to look for the Unik-Name Authentication server on
 Open a web browser and navigate to http://localhost:3003/ to see the example in action.
 
 **NOTE**: as routing between tenants is done with domain names, you mustn't load the application in your browser with use IP addresses.
-
-### Platform choice
-
-In order to simulate the multiple `10x` websites, (eg: `www.platform101.net`, `www.platform101.net` ...), you have to choose the launching "mode" of the application.
-Please change `DEV_PORT` and `P10*_HOST_URL` environment variables values in `.env` file
-
-Default mode, for Platform101 mode:
-```
-DEV_PORT=3003
-P101_HOST_URL=localhost:3003
-P102_HOST_URL=localhost:3004
-```
-
-To configure for Platform102 mode:
-```
-DEV_PORT=3004
-P101_HOST_URL=localhost:3003
-P102_HOST_URL=localhost:3004
-```
 
 ## In other environments
 

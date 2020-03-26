@@ -5,13 +5,7 @@ const db = require('./db');
 const assert = require('assert');
 const path = require('path');
 
-const { custom, Issuer, Strategy } = require('openid-client');
-
-const P101_MODE = 'p101';
-const P102_MODE = 'p102';
-
-const P101_NAME = 'Platform101';
-const P102_NAME = 'Platform102';
+const { custom } = require('openid-client');
 
 require('custom-env').env(true);
 
@@ -70,43 +64,14 @@ passport.serializeUser(function(req, user, cb) {
 });
 
 passport.deserializeUser(function(req, id, cb) {
-  db.users.findById(id, req.session.tenant, function(err, user) {
+  db.users.findById(id, "pl103", function(err, user) {
     if (err) {
       return cb(err);
     }
-    console.log('USER FROM DB !!!!!!!!!!!!!!', user);
     cb(null, user);
   });
 });
 
-function isDevMode() {
-  return process.env.APP_ENV === 'dev';
-}
-
-function loadPlatformAndTenant(request) {
-  let tenant = isDevMode() ? request.headers.host : request.hostname;
-  request.session.tenant = tenant;
-
-  console.log('GET PLATFORM FOR TENANT: ', tenant);
-
-  let p102ModeActivated = tenant === process.env.P102_HOST_URL;
-
-  console.log('P102_HOST_URL : ', process.env.P102_HOST_URL);
-  let platformMode = p102ModeActivated ? P102_MODE : P101_MODE;
-
-  console.log('HOST TO STORE : ', tenant);
-  let platformName = p102ModeActivated ? P102_NAME : P101_NAME;
-
-  request.session.platform = {
-    mode: platformMode,
-    name: platformName,
-  };
-}
-
-function logout(req) {
-  req.logout();
-  req.user = undefined;
-}
 
 function renderHome(req, res, renderMode) {
   let mode = {
@@ -126,16 +91,12 @@ function renderHome(req, res, renderMode) {
     deepLink: renderMode && renderMode.deepLink,
   };
   req.session.mode = mode;
-  req.session.casPassphraseRedirectURI = CAS_PASSPHRASE_REDIRECT_URI;
-
-  if (!req.session.tenant) {
-    loadPlatformAndTenant(req);
-  }
+  req.session.casPassphraseRedirectURI = REDIRECT_LOGIN_URI;
 
   res.render('home', {
     user: req.user,
-    casPassphraseRedirectURI: CAS_PASSPHRASE_REDIRECT_URI,
-    platform: req.session.platform,
+    casPassphraseRedirectURI: REDIRECT_LOGIN_URI,
+    platform: { name: 'Platform103', mode: "p103"},
     mode,
     explorerUrl: process.env.UNS_EXPLORER_URL,
   });
@@ -155,8 +116,6 @@ app.use(express.static(__dirname + '/public'));
 app.use(require('morgan')('combined'));
 app.use(require('cookie-parser')());
 app.use(require('body-parser').urlencoded({ extended: true }));
-
-app.set('trust proxy', !isDevMode());
 
 let expressSession = require('express-session');
 let store = new expressSession.MemoryStore();
@@ -181,49 +140,48 @@ if (process.env.APP_ENFORCE_TLS) {
   app.use(enforce.HTTPS({ trustProtoHeader: true }));
 }
 
+
+
+let REDIRECT_LOGIN_URI = '/login';
+let REDIRECT_LOGIN_URI_CB = `${REDIRECT_LOGIN_URI}/cb`;
+
+var StrategyAuth0  = require('passport-auth0-openidconnect').Strategy;
+
+passport.use(new StrategyAuth0({
+  domain: process.env.AUTH0_APP_DOMAIN,
+  clientID: process.env.AUTH0_APP_CLIENT_ID,
+  clientSecret: process.env.AUTH0_APP_CLIENT_SECRET,
+  callbackURL: `${process.env.AUTH0_APP_CB_URL}`,
+},
+function(issuer, audience, profile, done) {
+  if (profile) {
+    user = {
+      id: profile.id,
+      username: profile.id,
+      displayName: '',
+    };
+    db.users.createUserIfNeeded(user, "pl103", () => {
+      done(null, user);
+    });
+  }
+}));
+
+
 // Initialize Passport and restore authentication state, if any, from the
 // session.
 app.use(passport.initialize());
 app.use(passport.session());
-
-let CAS_PASSPHRASE_REDIRECT_URI = '/login/unikname';
-let CAS_PASSPHRASE_REDIRECT_URI_CB = `${CAS_PASSPHRASE_REDIRECT_URI}/cb`;
 
 // Define routes.
 app.get('/', function(req, res) {
   renderHome(req, res);
 });
 
-app.get('/login', function(req, res) {
-  let redirect = `${req.session.mode && req.session.mode.sli ? '/sli' : ''}${CAS_PASSPHRASE_REDIRECT_URI}`;
-  if (req.session.mode && !req.session.mode.social && !req.session.mode.emailpwd) {
-    res.redirect(redirect);
-  }
-});
-app.get('/connectSocialAuthent', function(req, res) {
-  let mode = {
-    social: true,
-    emailpwd: true,
-    sli: false,
-    deepLink: true,
-  };
-  renderHome(req, res, mode);
-  //res.redirect('/?social=true&emailpwd=true&sli=false&deepLink=true');
-});
 
-app.get('/connectEmail', function(req, res) {
-  let mode = {
-    social: false,
-    emailpwd: true,
-    sli: false,
-    deepLink: true,
-  };
-  renderHome(req, res, mode);
-  //res.redirect('/?emailpwd=true&sli=false&deepLink=true');
-});
+app.get('/login', passport.authenticate('auth0-oidc'));
 
 app.get('/signout', function(req, res) {
-  logout(req);
+  req.logout(req);
   res.redirect('/');
 });
 
@@ -233,7 +191,7 @@ app.post('/saveMessage', require('connect-ensure-login').ensureLoggedIn(), funct
     customMessage = customMessage.trim();
     let user = req.user;
     user.customMessage = customMessage;
-    db.users.updateUser(user, req.session.tenant, () => {
+    db.users.updateUser(user, "pl103", () => {
       res.redirect('/');
     });
   } else {
@@ -244,133 +202,12 @@ app.post('/saveMessage', require('connect-ensure-login').ensureLoggedIn(), funct
 let interface = process.env.SERVER_LISTEN_INTERFACE;
 let port = process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT ? process.env.PORT : 3003;
 
-function isAuthModeEnabled(authMode) {
-  let enabled = process.env[authMode + '_ENABLED'] === 'true';
-  console.log(`Authentication mode ${authMode} is enabled: ${enabled}`);
-  return enabled;
-}
-
-app.get('/reset', function(req, res) {
-  let mode = req.session.mode;
-  req.session.cookie.httpOnly = false;
-
-  // Logout
-  logout(req);
-
-  // Reset cookies
-  Object.keys(req.cookies).forEach((cookieName) => {
-    //res.clearCookie(cookieName, { path: '/', httpOnly: false });
-    res.cookie(cookieName, '', { path: '/', httpOnly: false, expires: new Date('Thu, 25 Dec 2000 12:00:00 UTC') });
-    store.destroy(req.cookies[cookieName]);
-  });
-
-  req.session.mode = mode;
-  res.redirect('/');
-});
-
-//  #######  #### ########   ######     ########  ######## ##     ##  #######  ######## ########    ##      ##    ###    ##       ##       ######## ########
-// ##     ##  ##  ##     ## ##    ##    ##     ## ##       ###   ### ##     ##    ##    ##          ##  ##  ##   ## ##   ##       ##       ##          ##
-// ##     ##  ##  ##     ## ##          ##     ## ##       #### #### ##     ##    ##    ##          ##  ##  ##  ##   ##  ##       ##       ##          ##
-// ##     ##  ##  ##     ## ##          ########  ######   ## ### ## ##     ##    ##    ######      ##  ##  ## ##     ## ##       ##       ######      ##
-// ##     ##  ##  ##     ## ##          ##   ##   ##       ##     ## ##     ##    ##    ##          ##  ##  ## ######### ##       ##       ##          ##
-// ##     ##  ##  ##     ## ##    ##    ##    ##  ##       ##     ## ##     ##    ##    ##          ##  ##  ## ##     ## ##       ##       ##          ##
-//  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##
-
-const params101 = {
-  scope: 'openid',
-  prompt: 'login',
-};
-
-const params102 = {
-  scope: 'openid',
-};
-
-// Custom strategies
-const P101_STRATEGY_NAME = 'p101Strategy';
-createPassphraseInstance(
-  process.env.P101_HOST_URL,
-  process.env.CAS_PASSPHRASE_CLIENT_ID_P101,
-  process.env.CAS_PASSPHRASE_CLIENT_SECRET_P101,
-  P101_STRATEGY_NAME,
-  params101,
-);
-
-const P102_STRATEGY_NAME = 'p102Strategy';
-createPassphraseInstance(
-  process.env.P102_HOST_URL,
-  process.env.CAS_PASSPHRASE_CLIENT_ID_P102,
-  process.env.CAS_PASSPHRASE_CLIENT_SECRET_P102,
-  P102_STRATEGY_NAME,
-  params102,
-);
-
-function doAuthenticate(req, res, next) {
-  if (!req.session.tenant) {
-    loadPlatformAndTenant(req);
-  }
-  let strategy2Use =
-    req.session.platform && req.session.platform.mode === P102_MODE ? P102_STRATEGY_NAME : P101_STRATEGY_NAME;
-  passport.authenticate(strategy2Use)(req, res, next);
-}
-
-// Common routes
-app.get(CAS_PASSPHRASE_REDIRECT_URI, doAuthenticate);
-
 // authentication callback
-app.get(CAS_PASSPHRASE_REDIRECT_URI_CB, doAuthenticate, function(req, res) {
-  db.users.updateSignIn(req.user, req.session.tenant, () => {
+app.get(REDIRECT_LOGIN_URI_CB, passport.authenticate('auth0-oidc'), function(req, res) {
+  db.users.updateSignIn(req.user, 'pl103', () => {
     res.redirect('/');
   });
 });
-
-function createPassphraseInstance(hostname, clientId, clientSecret, strategyName, strategyParams) {
-  console.log('Auth server uri:', process.env.CAS_PASSPHRASE_DISCOVERY_URI);
-  console.log('Local redirect URI:', CAS_PASSPHRASE_REDIRECT_URI);
-  console.log('Local callback redirect URI:', CAS_PASSPHRASE_REDIRECT_URI_CB);
-  console.log('OIDC client id:', clientId);
-  console.log('OIDC client pass:', clientSecret);
-
-  (async function addOIDC_PassphraseStrategy() {
-    let unAuthIssuer = await Issuer.discover(process.env.CAS_PASSPHRASE_DISCOVERY_URI); // => Promise
-
-    console.log('Discovered Unik-Name Auth\n Issuer: %s\n Metadata:\n%O', unAuthIssuer.issuer, unAuthIssuer.metadata);
-
-    const client = new unAuthIssuer.Client({
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uris: [`http${isDevMode() ? '' : 's'}://${hostname}${CAS_PASSPHRASE_REDIRECT_URI_CB}`],
-      response_types: ['code'],
-    });
-
-    passport.use(
-      strategyName,
-      new Strategy(
-        { client: client, params: strategyParams, passReqToCallback: true },
-        (req, tokenset, userinfo, done) => {
-          console.log('userinfo', userinfo);
-          if (userinfo) {
-            user = {
-              id: userinfo.sub,
-              username: userinfo.sub,
-              displayName: '',
-            };
-            db.users.createUserIfNeeded(user, req.session.tenant, () => {
-              done(null, user);
-            });
-          }
-        },
-      ),
-    );
-  })();
-}
-
-// ######  ######## ########  ##     ## ######## ########
-// ##    ## ##       ##     ## ##     ## ##       ##     ##
-// ##       ##       ##     ## ##     ## ##       ##     ##
-//  ######  ######   ########  ##     ## ######   ########
-//       ## ##       ##   ##    ##   ##  ##       ##   ##
-// ##    ## ##       ##    ##    ## ##   ##       ##    ##
-//  ######  ######## ##     ##    ###    ######## ##     ##
 
 app.listen(port, interface);
 console.log('Server started on', `http://${interface}:${port}`);

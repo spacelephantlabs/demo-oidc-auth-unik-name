@@ -26,17 +26,10 @@
       </li>
       <% } else { %>
         <li class="nav-item border">
-          <% if (mode && (mode.social || mode.emailpwd)) { %>
-            <span class="nav-link connect-button" data-toggle="modal" data-target="#loginModal">
-              <img src="./images/unikname-connect.png" alt="unik-name connect logo" />
-              Connect
-            </span>
-          <% } else { %>
-            <a class="nav-link connect-button" href="<%= casPassphraseRedirectURI %>">
-              <img src="./images/unikname-connect.png" alt="unik-name connect logo" />
-              Connect
-            </a>
-          <% } %>
+          <a class="nav-link connect-button" href="<%= casPassphraseRedirectURI %>">
+            <img src="./images/unikname-connect.png" alt="unik-name connect logo" />
+            Connect
+          </a>
         </li>
       <% } %>
     </ul>
