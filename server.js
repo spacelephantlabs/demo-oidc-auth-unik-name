@@ -28,6 +28,32 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 const defaultHttpOptions = {
   timeout: 10000,
   retries: 1,
+  hooks: {
+    beforeRequest: [
+      (options) => {
+        console.log('--> %s %s', options.method.toUpperCase(), options.href);
+        console.log('--> HEADERS %o', options.headers);
+        if (options.body) {
+          console.log('--> BODY %s', options.body);
+        }
+      },
+    ],
+    afterResponse: [
+      (response) => {
+        console.log(
+          '<-- %i FROM %s %s',
+          response.statusCode,
+          response.request.gotOptions.method.toUpperCase(),
+          response.request.gotOptions.href,
+        );
+        console.log('<-- HEADERS %o', response.headers);
+        if (response.body) {
+          console.log('<-- BODY %s', response.body);
+        }
+        return response;
+      },
+    ],
+  },
 };
 custom.setHttpOptionsDefaults(defaultHttpOptions);
 console.log('OIDC client HTTP configuration %O', defaultHttpOptions);
