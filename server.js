@@ -5,7 +5,7 @@ const db = require('./db');
 const assert = require('assert');
 const path = require('path');
 
-const OIDC = require('openid-client');
+const { custom, Issuer, Strategy } = require('openid-client');
 
 const P101_MODE = 'p101';
 const P102_MODE = 'p102';
@@ -25,8 +25,12 @@ console.log('Public URL of the service', process.env.APP_URL);
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
 // Configure OIDC client
-OIDC.Issuer.defaultHttpOptions = { timeout: 10000, retries: 1 };
-console.log('OIDC client HTTP configuration %O', OIDC.Issuer.defaultHttpOptions);
+const defaultHttpOptions = {
+  timeout: 10000,
+  retries: 1,
+};
+custom.setHttpOptionsDefaults(defaultHttpOptions);
+console.log('OIDC client HTTP configuration %O', defaultHttpOptions);
 
 // Configure Passport authenticated session persistence.
 //
@@ -301,7 +305,7 @@ function createPassphraseInstance(hostname, clientId, clientSecret, strategyName
   console.log('OIDC client pass:', clientSecret);
 
   (async function addOIDC_PassphraseStrategy() {
-    let unAuthIssuer = await OIDC.Issuer.discover(process.env.CAS_PASSPHRASE_DISCOVERY_URI); // => Promise
+    let unAuthIssuer = await Issuer.discover(process.env.CAS_PASSPHRASE_DISCOVERY_URI); // => Promise
 
     console.log('Discovered Unik-Name Auth\n Issuer: %s\n Metadata:\n%O', unAuthIssuer.issuer, unAuthIssuer.metadata);
 
@@ -314,7 +318,7 @@ function createPassphraseInstance(hostname, clientId, clientSecret, strategyName
 
     passport.use(
       strategyName,
-      new OIDC.Strategy(
+      new Strategy(
         { client: client, params: strategyParams, passReqToCallback: true },
         (req, tokenset, userinfo, done) => {
           console.log('userinfo', userinfo);
