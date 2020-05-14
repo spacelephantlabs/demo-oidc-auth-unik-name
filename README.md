@@ -6,7 +6,7 @@ To install this example on your computer, clone the repository and install
 dependencies.
 
 ```bash
-$ npm install
+$ yarn install
 ```
 
 # Running the application
