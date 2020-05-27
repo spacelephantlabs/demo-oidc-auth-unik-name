@@ -277,7 +277,7 @@ app.get('/reset', function(req, res) {
 //  #######  #### ########   ######     ##     ## ######## ##     ##  #######     ##    ########     ###  ###  ##     ## ######## ######## ########    ##
 
 const params101 = {
-  scope: 'openid',
+  scope: 'openid email',
   prompt: 'login',
 };
 
@@ -353,6 +353,7 @@ function createPassphraseInstance(hostname, clientId, clientSecret, strategyName
               id: userinfo.sub,
               username: userinfo.sub,
               displayName: '',
+              email: userinfo.attributes ? userinfo.attributes.email : ''
             };
             db.users.createUserIfNeeded(user, req.session.tenant, () => {
               done(null, user);
