@@ -2,7 +2,7 @@
   <%- include partials/dependencies.ejs %>
   <title><%= platform.name %></title>
   <meta name="uns-url-checker-verification" content="eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1OTc5MTI5NjMsImV4cCI6MTU5ODE3MjE2MywianRpIjoiR0tjN0lpd3E2YXlxOUNBQWxKa1VPIiwiYXVkIjoiZGlkOnVuaWs6dW5pZDo1Zjk2ZGQzNTlhYjMwMGUyYzcwMmE1NDc2MGY0ZDc0YTExZGIwNzZhYTE3NTc1MTc5ZDM2ZTA2ZDc1Yzk2NTExIiwic3ViIjoiZGlkOnVuaWs6dW5pZDo4OGYyYTk4OThhOGViMDVmYWRmNjhmMGY1OWIxNTVmMzU2ZTFmNDhhOGRiNWNlZGMzZDFkNDUwNzE3NzdhYjdlIiwidHlwZSI6InVybCIsInZhbHVlIjoid3d3LnBsYXRmb3JtMTAxLm5ldCIsImlzcyI6ImRpZDp1bmlrOnVuaWQ6ODhmMmE5ODk4YThlYjA1ZmFkZjY4ZjBmNTliMTU1ZjM1NmUxZjQ4YThkYjVjZWRjM2QxZDQ1MDcxNzc3YWI3ZSJ9.kzDJU5fgTDj9-IataRnNHplnBEG6xZe_06xvlSCncgIKnZTj1OVYBxi_HvZDjeX9Q8dtC2AqjcSInM6Hua3oKg">
-  <link rel="icon" type="image/png" href="./images/unikname-connect.png" />
+  <link rel="icon" type="image/png" href="./images/<%= platform.name.toLowerCase() %>-icon.png" />
 </head>
 <body class="<%= platform.mode %>">
   <%- include partials/navigation.ejs %>
