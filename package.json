@@ -17,7 +17,6 @@
     "url": "git://github.com/spacelephantlabs/demo-oidc-auth-unik-name.git"
   },
   "dependencies": {
-    "@exlinc/keycloak-passport": "^1.0.2",
     "body-parser": "^1.13.3",
     "connect-ensure-login": "^0.1.1",
     "cookie-parser": "^1.3.5",
