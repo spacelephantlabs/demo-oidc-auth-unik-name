@@ -4,6 +4,7 @@ const passport = require('passport');
 const db = require('./db');
 const assert = require('assert');
 const path = require('path');
+const helmet = require('helmet');
 
 const { custom, Issuer, Strategy } = require('openid-client');
 
@@ -65,12 +66,12 @@ console.log('OIDC client HTTP configuration %O', defaultHttpOptions);
 // typical implementation of this is as simple as supplying the user ID when
 // serializing, and querying the user record by ID from the database when
 // deserializing.
-passport.serializeUser(function(req, user, cb) {
+passport.serializeUser(function (req, user, cb) {
   cb(null, user.id);
 });
 
-passport.deserializeUser(function(req, id, cb) {
-  db.users.findById(id, req.session.tenant, function(err, user) {
+passport.deserializeUser(function (req, id, cb) {
+  db.users.findById(id, req.session.tenant, function (err, user) {
     if (err) {
       return cb(err);
     }
@@ -169,11 +170,15 @@ app.use(
   }),
 );
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
+
+// Enforce Helmet, especially for the Referrer policy
+// All options https://www.npmjs.com/package/helmet#how-it-works
+app.use(helmet());
 
 if (process.env.APP_ENFORCE_TLS) {
   console.log('Enforce TLS, all HTTP requests will be redirected to HTTPS');
@@ -190,17 +195,17 @@ let CAS_PASSPHRASE_REDIRECT_URI = '/login/unikname';
 let CAS_PASSPHRASE_REDIRECT_URI_CB = `${CAS_PASSPHRASE_REDIRECT_URI}/cb`;
 
 // Define routes.
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
   renderHome(req, res);
 });
 
-app.get('/login', function(req, res) {
+app.get('/login', function (req, res) {
   let redirect = `${req.session.mode && req.session.mode.sli ? '/sli' : ''}${CAS_PASSPHRASE_REDIRECT_URI}`;
   if (req.session.mode && !req.session.mode.social && !req.session.mode.emailpwd) {
     res.redirect(redirect);
   }
 });
-app.get('/connectSocialAuthent', function(req, res) {
+app.get('/connectSocialAuthent', function (req, res) {
   let mode = {
     social: true,
     emailpwd: true,
@@ -211,7 +216,7 @@ app.get('/connectSocialAuthent', function(req, res) {
   //res.redirect('/?social=true&emailpwd=true&sli=false&deepLink=true');
 });
 
-app.get('/connectEmail', function(req, res) {
+app.get('/connectEmail', function (req, res) {
   let mode = {
     social: false,
     emailpwd: true,
@@ -222,12 +227,12 @@ app.get('/connectEmail', function(req, res) {
   //res.redirect('/?emailpwd=true&sli=false&deepLink=true');
 });
 
-app.get('/signout', function(req, res) {
+app.get('/signout', function (req, res) {
   logout(req);
   res.redirect('/');
 });
 
-app.post('/saveMessage', require('connect-ensure-login').ensureLoggedIn(), function(req, res) {
+app.post('/saveMessage', require('connect-ensure-login').ensureLoggedIn(), function (req, res) {
   let customMessage = req.body.customMessage;
   if (customMessage) {
     customMessage = customMessage.trim();
@@ -250,7 +255,7 @@ function isAuthModeEnabled(authMode) {
   return enabled;
 }
 
-app.get('/reset', function(req, res) {
+app.get('/reset', function (req, res) {
   let mode = req.session.mode;
   req.session.cookie.httpOnly = false;
 
@@ -317,7 +322,7 @@ function doAuthenticate(req, res, next) {
 app.get(CAS_PASSPHRASE_REDIRECT_URI, doAuthenticate);
 
 // authentication callback
-app.get(CAS_PASSPHRASE_REDIRECT_URI_CB, doAuthenticate, function(req, res) {
+app.get(CAS_PASSPHRASE_REDIRECT_URI_CB, doAuthenticate, function (req, res) {
   db.users.updateSignIn(req.user, req.session.tenant, () => {
     res.redirect('/');
   });
