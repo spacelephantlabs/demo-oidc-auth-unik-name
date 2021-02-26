@@ -300,6 +300,15 @@ createPassphraseInstance(
   params101,
 );
 
+const STAGING_P101_STRATEGY_NAME = 'stagingP101Strategy';
+createPassphraseInstance(
+  process.env.STAGING_P101_HOST_URL,
+  process.env.CAS_PASSPHRASE_CLIENT_ID_STAGING_P101,
+  process.env.CAS_PASSPHRASE_CLIENT_SECRET_STAGING_P101,
+  STAGING_P101_STRATEGY_NAME,
+  params101,
+);
+
 const P102_STRATEGY_NAME = 'p102Strategy';
 createPassphraseInstance(
   process.env.P102_HOST_URL,
