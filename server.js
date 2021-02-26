@@ -325,7 +325,7 @@ function doAuthenticate(req, res, next) {
   let strategy2Use =
     req.session.platform && req.session.platform.mode === P102_MODE ? P102_STRATEGY_NAME : P101_STRATEGY_NAME;
 
-  if (strategy2Use === P101_STRATEGY_NAME && req.session.tenant === STAGING_P101_HOST_URL) {
+  if (strategy2Use === P101_STRATEGY_NAME && req.session.tenant === process.env.STAGING_P101_HOST_URL) {
     strategy2Use = STAGING_P101_STRATEGY_NAME;
   }
 
