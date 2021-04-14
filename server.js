@@ -328,8 +328,13 @@ function doAuthenticate(req, res, next) {
   if (strategy2Use === P101_STRATEGY_NAME && req.session.tenant === process.env.STAGING_P101_HOST_URL) {
     strategy2Use = STAGING_P101_STRATEGY_NAME;
   }
-
-  passport.authenticate(strategy2Use)(req, res, next);
+  
+  if (req.query.code && !req.query.state) {
+    // In case of bad authentication process
+    res.redirect("/");
+  }  {
+    passport.authenticate(strategy2Use)(req, res, next);
+  }
 }
 
 // Common routes
